@@ -5,8 +5,8 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# IMPORTANTE: Reemplaza este link por el enlace de reproducción directa de tu video
-VIDEO_URL = "https://googleapis.com"
+# Enlace directo a tu película en Archive.org
+VIDEO_URL = "https://archive.org"
 
 PAGINA_WEB = """<!DOCTYPE html>
 <html lang="es">
@@ -52,7 +52,7 @@ PAGINA_WEB = """<!DOCTYPE html>
     <div id="videoModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="cerrarVideo()">&times;</span>
-            <video id="player" controls><source id="videoSource" src=""></video>
+            <video id="player" controls><source id="videoSource" src="" type="video/mp4"></video>
         </div>
     </div>
     <script>
@@ -89,6 +89,5 @@ def home():
     return render_template_string(PAGINA_WEB, clave=CONTRASEÑA_CORRECTA, url_video=VIDEO_URL)
 
 if __name__ == '__main__':
-    # Esto permite que el servidor en la nube le asigne un puerto libre automáticamente
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
