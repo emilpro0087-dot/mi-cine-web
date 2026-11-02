@@ -6,16 +6,7 @@ app = Flask(__name__)
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
 # Enlace directo del archivo alojado en Internet Archive
-# Enlace directo del archivo alojado en Internet Archive
 VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
-
-# Subtítulos base (puedes conservarlos o dejarlos vacíos)
-SUBTITULOS_VTT = """WEBVTT
-
-1
-00:00:05.000 --> 00:00:09.000
-Benvenuti al cinema privato.
-"""
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
@@ -400,7 +391,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             z-index: 20;
         }
 
-        /* Barra de control para subtítulos automáticos */
         .subtitle-controls {
             position: absolute;
             top: 12px;
@@ -433,7 +423,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             height: 15px;
         }
 
-        /* Contenedor overlay para subtítulos en vivo */
         .live-subtitle-overlay {
             position: absolute;
             bottom: 60px;
@@ -552,9 +541,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
 
-            <video id="player" controls crossorigin="anonymous">
-                <source id="videoSource" src="" type="video/mp4">
-            </video>
+            <video id="player" controls playsinline></video>
 
             <div class="live-subtitle-overlay">
                 <span id="liveSubText" class="live-subtitle-text"></span>
@@ -703,14 +690,13 @@ PAGINA_WEB = """<!DOCTYPE html>
             // 2. Elimina cualquier comilla suelta
             text = text.replace(/["'«»“”]/g, "");
 
-            // 3. Elimina notas musicales, sostenidos y símbolos no hablados
+            // 3. Elimina notas musicales, sostenidos y caracteres no hablados
             text = text.replace(/[♪♫#♬♩]/g, "");
 
             // 4. Elimina acotaciones o sonidos entre corchetes o paréntesis
             text = text.replace(/\\[.*?\\]/g, "");
             text = text.replace(/\\(.*?\\)/g, "");
 
-            // Limpieza de espacios redundantes
             return text.trim();
         }
 
@@ -724,7 +710,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             const rec = new SpeechRecognition();
             rec.continuous = true;
             rec.interimResults = true;
-            rec.lang = "es-ES"; // Cambiar al idioma preferido de detección
+            rec.lang = "es-ES";
 
             rec.onresult = (event) => {
                 if (!isAutoSubActive) return;
@@ -734,7 +720,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                     transcript += event.results[i][0].transcript;
                 }
 
-                // Filtrar para dejar únicamente la voz limpia
                 const cleanVoiceText = sanitizeVoiceOnly(transcript);
                 const subBox = document.getElementById("liveSubText");
 
@@ -754,7 +739,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             };
 
             rec.onend = () => {
-                // Mantener activo mientras el video se reproduzca y la opción esté marcada
                 const player = document.getElementById("player");
                 if (isAutoSubActive && !player.paused && !player.ended) {
                     try { rec.start(); } catch (_) {}
@@ -773,7 +757,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
 
             if (!recognition) {
-                alert("Tu navegador no soporta reconocimiento de voz nativo en tiempo real.");
+                alert("Tu navegador no soporta reconocimiento de voz nativo.");
                 document.getElementById("toggleAutoSub").checked = false;
                 return;
             }
@@ -794,14 +778,19 @@ PAGINA_WEB = """<!DOCTYPE html>
         function reproducir(videoUrl) {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
-            const source = document.getElementById("videoSource");
 
-            source.src = videoUrl;
-            player.load();
+            // Asignación directa a src y carga sin bloqueos CORS
+            player.src = videoUrl;
             modal.style.display = "flex";
-            player.play();
+            player.load();
 
-            // Vincular reproducción/pausa con el estado del subtítulo automático
+            const playPromise = player.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn("Autoplay prevenido por política de navegador:", error);
+                });
+            }
+
             player.onplay = () => {
                 if (isAutoSubActive && recognition) {
                     try { recognition.start(); } catch (_) {}
@@ -822,6 +811,8 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             modal.style.display = "none";
             player.pause();
+            player.removeAttribute('src');
+            player.load();
 
             if (recognition) {
                 try { recognition.stop(); } catch (_) {}
