@@ -16,12 +16,12 @@ PAGINA_WEB = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cine Privado // Acceso Cuántico</title>
+    <title>Cine Privado // Cinema Vault</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0a0a0c;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: #0b0c10;
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
@@ -111,7 +111,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         /* -------------------------------------------
-           2. PANTALLA LOGIN CON FONDO DE PELÍCULAS
+           2. LOGIN CON MURAL DESENFOCADO
         ------------------------------------------- */
         #loginScreen {
             position: fixed;
@@ -133,16 +133,16 @@ PAGINA_WEB = """<!DOCTYPE html>
                 url('https://image.tmdb.org/t/p/original/yDHYTfA3R0jFYba16jBB1ef8oIt.jpg');
             background-size: cover;
             background-position: center;
-            filter: blur(12px) saturate(1.2);
+            filter: blur(14px) saturate(1.2);
             transform: scale(1.08);
         }
 
         .login-card {
             position: relative;
             z-index: 10;
-            background: rgba(18, 18, 24, 0.82);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(18, 18, 24, 0.85);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 16px;
             padding: 40px 35px;
@@ -154,7 +154,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .login-card h2 {
             font-size: 24px;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             margin-bottom: 8px;
         }
 
@@ -162,10 +162,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-size: 13px;
             color: #999;
             margin-bottom: 25px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
         }
 
         .input-group input {
@@ -198,16 +194,13 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-weight: bold;
             cursor: pointer;
             letter-spacing: 1px;
+            margin-top: 15px;
             transition: background 0.2s, transform 0.1s;
         }
 
         .btn-submit:hover {
             background: #b80d17;
             transform: translateY(-2px);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
         }
 
         .error-label {
@@ -219,71 +212,162 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         /* -------------------------------------------
-           3. CATÁLOGO Y MODAL DE VIDEO
+           3. CATÁLOGO CON FONDO NETFLIX Y TÍTULO PRO
         ------------------------------------------- */
         #catalogSection {
-            padding: 60px 20px;
-            text-align: center;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 20px 80px;
+            overflow: hidden;
+        }
+
+        /* Fondo de películas apiladas estilo Netflix */
+        .netflix-wall-bg {
+            position: fixed;
+            inset: -20px;
+            z-index: 1;
+            background-image: 
+                radial-gradient(circle at center, rgba(14, 16, 24, 0.82) 0%, rgba(5, 6, 10, 0.96) 80%),
+                linear-gradient(to bottom, rgba(5, 6, 10, 0.7), rgba(5, 6, 10, 0.95)),
+                url('https://assets.nflxext.com/ffe/siteui/vlv3/797858c0-2f95-44cb-a664-9f2066d4821a/48dd642c-f64f-43fc-8785-3db3aa84f5aa/ES-es-20240902-TRIFECTA-perspective_alpha_website_large.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: blur(4px) brightness(0.65);
+            pointer-events: none;
+        }
+
+        .catalog-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
             max-width: 1100px;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .catalog-header {
-            margin-bottom: 40px;
+        /* Título Elaborado Cine Privado */
+        .elaborate-header {
+            text-align: center;
+            margin-bottom: 45px;
         }
 
-        .catalog-header h1 {
-            font-size: 36px;
-            font-weight: 800;
+        .meta-tagline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            background: rgba(229, 9, 20, 0.15);
+            border: 1px solid rgba(229, 9, 20, 0.4);
+            color: #ff4d5a;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .meta-tagline span {
+            width: 6px;
+            height: 6px;
+            background: #e50914;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff4d5a;
+        }
+
+        .cinema-title {
+            font-size: clamp(34px, 5vw, 54px);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(180deg, #ffffff 25%, #cfd4dc 70%, #828a99 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .cinema-title em {
+            font-style: normal;
+            background: linear-gradient(180deg, #ff4d5a 0%, #e50914 55%, #8b0007 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-divider {
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #e50914, transparent);
+            margin: 10px auto 14px;
+            box-shadow: 0 0 12px #e50914;
+        }
+
+        .sub-description {
+            color: #8c96a7;
+            font-size: 14px;
             letter-spacing: 1px;
         }
 
-        .grid {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            flex-wrap: wrap;
-        }
-
+        /* Tarjeta de Película */
         .movie-card {
-            background: #141416;
-            border-radius: 12px;
+            background: rgba(20, 22, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
             overflow: hidden;
-            width: 260px;
+            width: 270px;
             cursor: pointer;
-            border: 1px solid #222;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
         }
 
         .movie-card:hover {
-            transform: translateY(-8px) scale(1.02);
+            transform: translateY(-10px) scale(1.03);
             border-color: #e50914;
-            box-shadow: 0 14px 28px rgba(229, 9, 20, 0.35);
+            box-shadow: 0 20px 40px rgba(229, 9, 20, 0.45);
         }
 
         .movie-card img {
             width: 100%;
-            height: 380px;
+            height: 390px;
             object-fit: cover;
             display: block;
         }
 
         .movie-card .info {
-            padding: 15px;
+            padding: 16px;
             text-align: left;
+            background: linear-gradient(180deg, rgba(20, 22, 30, 0.95), #0f1015);
         }
 
         .movie-card .info h3 {
-            font-size: 17px;
-            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .movie-card .badges {
+            display: flex;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #b3b3b3;
+        }
+
+        .badge-pill {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 7px;
+            border-radius: 4px;
             color: #fff;
         }
 
-        .movie-card .info span {
-            font-size: 12px;
-            color: #888;
-        }
-
+        /* Modal Reproductor */
         .modal {
             display: none;
             position: fixed;
@@ -298,11 +382,12 @@ PAGINA_WEB = """<!DOCTYPE html>
         .modal-box {
             position: relative;
             width: 100%;
-            max-width: 950px;
+            max-width: 960px;
             background: #000;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid #333;
             overflow: hidden;
+            box-shadow: 0 0 50px rgba(229, 9, 20, 0.25);
         }
 
         .modal-close {
@@ -310,7 +395,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             top: 10px;
             right: 15px;
             color: #fff;
-            font-size: 32px;
+            font-size: 34px;
             font-weight: bold;
             cursor: pointer;
             z-index: 10;
@@ -322,9 +407,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             outline: none;
         }
 
-        /* -------------------------------------------
-           ANIMACIONES (SHAKE, SLIDE DOWN, SPINNERS)
-        ------------------------------------------- */
+        /* Animaciones */
         @keyframes spinGear {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -359,7 +442,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 </head>
 <body>
 
-    <!-- 1. Pantalla de carga futurista -->
+    <!-- 1. Carga futurista -->
     <div id="loaderOverlay">
         <div class="door-frame">
             <div class="door-graphics"></div>
@@ -371,12 +454,12 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 2. Pantalla de login sobre mural de películas desenfocado -->
+    <!-- 2. Login sobre pósters desenfocados -->
     <div id="loginScreen">
         <div class="movie-backdrop"></div>
         <div class="login-card" id="loginCard">
             <h2>ACCESO PRIVADO</h2>
-            <p>Ingresa la contraseña para desbloquear el catálogo</p>
+            <p>Introduce la clave para desbloquear tu cine personal</p>
             
             <div class="input-group">
                 <input type="password" id="passInput" placeholder="••••••••" autocomplete="off">
@@ -387,19 +470,28 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 3. Catálogo final -->
+    <!-- 3. Catálogo con fondo Netflix y Título Elaborado -->
     <div id="catalogSection">
-        <div class="catalog-header">
-            <h1>🍿 Tu Cine Privado</h1>
-            <p style="color: #777; margin-top: 6px;">Catálogo personal disponible</p>
-        </div>
+        <div class="netflix-wall-bg"></div>
 
-        <div class="grid">
+        <div class="catalog-content">
+            <div class="elaborate-header">
+                <div class="meta-tagline">
+                    <span></span> SERVIDOR PRIVADO EXCLUSIVO
+                </div>
+                <h1 class="cinema-title">CINE <em>PRIVADO</em></h1>
+                <div class="title-divider"></div>
+                <p class="sub-description">Catálogo seleccionado • Transmisión en Ultra HD</p>
+            </div>
+
             <div class="movie-card" onclick="reproducir('{{ url_video }}')">
                 <img src="{{ portada }}" alt="Deadpool & Wolverine">
                 <div class="info">
                     <h3>Deadpool & Wolverine</h3>
-                    <span>Acción / Aventura • Calidad HD</span>
+                    <div class="badges">
+                        <span class="badge-pill">4K ULTRA HD</span>
+                        <span>Acción • Comedia</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -416,7 +508,7 @@ PAGINA_WEB = """<!DOCTYPE html>
     </div>
 
     <script>
-        // Simulación de carga futurista
+        // Carga de compuertas
         window.addEventListener("DOMContentLoaded", () => {
             const bar = document.getElementById("progressBar");
             const label = document.getElementById("statusLabel");
@@ -446,7 +538,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             }, 60);
         });
 
-        // Verificación de credenciales con efecto Shake + Slide Down
+        // Acceso con Shake y Slide Down
         function validarAcceso() {
             const input = document.getElementById("passInput");
             const error = document.getElementById("errorLabel");
@@ -454,18 +546,15 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             if (input.value === "{{ clave }}") {
                 error.innerText = "";
-                // 1. Efecto de sacudida (shake)
                 loginScreen.classList.add("screen-shake");
                 
-                // 2. Deslizar hacia abajo tras el shake
                 setTimeout(() => {
                     loginScreen.classList.remove("screen-shake");
                     loginScreen.classList.add("slide-down-exit");
                 }, 460);
             } else {
-                error.innerText = "Contraseña incorrecta. Intento bloqueado.";
+                error.innerText = "Contraseña denegada. Intento no autorizado.";
                 input.value = "";
-                // Pequeña vibración en el botón o tarjeta de error
                 const card = document.getElementById("loginCard");
                 card.style.transform = "translateX(-8px)";
                 setTimeout(() => { card.style.transform = "translateX(8px)"; }, 80);
@@ -474,12 +563,11 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         }
 
-        // Permitir presionar tecla Enter
         document.getElementById("passInput").addEventListener("keypress", (e) => {
             if (e.key === "Enter") validarAcceso();
         });
 
-        // Controles de reproducción de video
+        // Modal de reproducción
         function reproducir(url) {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
