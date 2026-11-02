@@ -6,6 +6,7 @@ app = Flask(__name__)
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
 # Enlace directo del archivo alojado en Internet Archive
+# Enlace directo del archivo alojado en Internet Archive
 VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
 # Subtítulos base (puedes conservarlos o dejarlos vacíos)
