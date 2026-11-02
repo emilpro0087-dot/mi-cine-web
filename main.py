@@ -5,10 +5,34 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Enlace directo del archivo alojado en Internet Archive
+# Enlace directo del video
 VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
+
+# Subtítulos base (puedes pegar aquí tu archivo VTT/SRT completo de la película)
+SUBTITULOS_VTT_BASE = """WEBVTT
+
+1
+00:00:03.000 --> 00:00:07.000
+♪ Música de introducción de Marvel ♪
+
+2
+00:00:08.000 --> 00:00:13.000
+"Hola a todos", bienvenidos de nuevo.
+
+3
+00:00:14.000 --> 00:00:18.000
+[Disparos y explosiones en el fondo]
+
+4
+00:00:19.000 --> 00:00:23.000
+¿Creían que me quedaría tranquilo en casa?
+
+5
+00:00:24.000 --> 00:00:28.000
+No mientras el multiverso esté en peligro.
+"""
 
 PAGINA_WEB = """<!DOCTYPE html>
 <html lang="es">
@@ -358,6 +382,15 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #fff;
         }
 
+        /* Estilo visual de subtítulos en el reproductor */
+        ::cue {
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #ffd700;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -421,31 +454,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             cursor: pointer;
             width: 15px;
             height: 15px;
-        }
-
-        .live-subtitle-overlay {
-            position: absolute;
-            bottom: 60px;
-            left: 5%;
-            right: 5%;
-            text-align: center;
-            pointer-events: none;
-            z-index: 15;
-        }
-
-        .live-subtitle-text {
-            display: inline-block;
-            background: rgba(0, 0, 0, 0.82);
-            color: #ffd700;
-            font-size: 20px;
-            font-weight: bold;
-            padding: 6px 16px;
-            border-radius: 6px;
-            text-shadow: 2px 2px 4px #000000;
-            max-width: 90%;
-            word-wrap: break-word;
-            opacity: 0;
-            transition: opacity 0.2s ease;
         }
 
         video {
@@ -522,7 +530,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                     <h3>Deadpool & Wolverine</h3>
                     <div class="badges">
                         <span class="badge-pill">4K ULTRA HD</span>
-                        <span class="badge-pill">AUTO SUB</span>
+                        <span class="badge-pill">SUB (SOLO VOZ)</span>
                         <span>Acción • Comedia</span>
                     </div>
                 </div>
@@ -534,20 +542,21 @@ PAGINA_WEB = """<!DOCTYPE html>
         <div class="modal-box">
             <div class="subtitle-controls">
                 <label>
-                    <input type="checkbox" id="toggleAutoSub" onchange="toggleAutoSubtitles(this.checked)">
-                    Subtítulos Automáticos (Solo Voz)
+                    <input type="checkbox" id="toggleAutoSub" onchange="toggleSubtitles(this.checked)">
+                    Subtítulos (Solo Voz)
                 </label>
             </div>
 
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
 
-            <video id="player" controls playsinline></video>
-
-            <div class="live-subtitle-overlay">
-                <span id="liveSubText" class="live-subtitle-text"></span>
-            </div>
+            <video id="player" controls playsinline>
+                <track id="videoTrack" kind="subtitles" srclang="es" label="Español (Solo Voz)">
+            </video>
         </div>
     </div>
+
+    <!-- Pista base con los subtítulos -->
+    <script id="embeddedSubtitles" type="text/vtt">{{ subtitulos_raw | safe }}</script>
 
     <script>
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -673,152 +682,86 @@ PAGINA_WEB = """<!DOCTYPE html>
             if (e.key === "Enter") validarAcceso();
         });
 
-        /* --- Reconocimiento de Voz y Filtro de Voces --- */
-        let recognition = null;
-        let isAutoSubActive = false;
-        let hideSubTimeout = null;
+        // FILTRO DE VOCES: Elimina notas musicales, texto entre comillas y ruidos
+        function limpiarVozVTT(vttTexto) {
+            const lineas = vttTexto.split('\\n');
+            const resultado = [];
 
-        function sanitizeVoiceOnly(rawText) {
-            let text = rawText;
+            for (let linea of lineas) {
+                // Conservar cabeceras y marcas de tiempo
+                if (linea.startsWith("WEBVTT") || linea.includes("-->") || /^[0-9]+$/.test(linea.trim())) {
+                    resultado.push(linea);
+                    continue;
+                }
 
-            // 1. Elimina texto encerrado en comillas de cualquier tipo ("", '', «», “”)
-            text = text.replace(/"[^"]*"/g, "");
-            text = text.replace(/'[^']*'/g, "");
-            text = text.replace(/«[^»]*»/g, "");
-            text = text.replace(/[“”][^“”]*[“”]/g, "");
+                let texto = linea;
 
-            // 2. Elimina cualquier comilla suelta
-            text = text.replace(/["'«»“”]/g, "");
+                // 1. Descartar si toda la línea o fragmento es música o notas
+                if (/[♪♫#♬♩]/.test(texto)) {
+                    texto = texto.replace(/♪.*?♪/g, "").replace(/[♪♫#♬♩]/g, "");
+                }
 
-            // 3. Elimina notas musicales, sostenidos y caracteres no hablados
-            text = text.replace(/[♪♫#♬♩]/g, "");
+                // 2. Eliminar texto entre comillas completas
+                texto = texto.replace(/"[^"]*"/g, "");
+                texto = texto.replace(/'[^']*'/g, "");
+                texto = texto.replace(/«[^»]*»/g, "");
+                texto = texto.replace(/[“”][^“”]*[“”]/g, "");
+                texto = texto.replace(/["'«»“”]/g, "");
 
-            // 4. Elimina acotaciones o sonidos entre corchetes o paréntesis
-            text = text.replace(/\\[.*?\\]/g, "");
-            text = text.replace(/\\(.*?\\)/g, "");
+                // 3. Eliminar efectos de sonido entre corchetes o paréntesis [Música], (Grito)
+                texto = texto.replace(/\\[.*?\\]/g, "");
+                texto = texto.replace(/\\(.*?\\)/g, "");
 
-            return text.trim();
+                resultado.push(texto.trim());
+            }
+
+            return resultado.join('\\n');
         }
 
-        function initSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                console.warn("SpeechRecognition API no está soportada en este navegador.");
-                return null;
-            }
-
-            const rec = new SpeechRecognition();
-            rec.continuous = true;
-            rec.interimResults = true;
-            rec.lang = "es-ES";
-
-            rec.onresult = (event) => {
-                if (!isAutoSubActive) return;
-
-                let transcript = "";
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
-                }
-
-                const cleanVoiceText = sanitizeVoiceOnly(transcript);
-                const subBox = document.getElementById("liveSubText");
-
-                if (cleanVoiceText.length > 0) {
-                    subBox.textContent = cleanVoiceText;
-                    subBox.style.opacity = "1";
-
-                    clearTimeout(hideSubTimeout);
-                    hideSubTimeout = setTimeout(() => {
-                        subBox.style.opacity = "0";
-                    }, 3500);
-                }
-            };
-
-            rec.onerror = (e) => {
-                console.warn("Speech recognition error:", e.error);
-            };
-
-            rec.onend = () => {
-                const player = document.getElementById("player");
-                if (isAutoSubActive && !player.paused && !player.ended) {
-                    try { rec.start(); } catch (_) {}
-                }
-            };
-
-            return rec;
-        }
-
-        function toggleAutoSubtitles(enabled) {
-            isAutoSubActive = enabled;
-            const subBox = document.getElementById("liveSubText");
-
-            if (!recognition) {
-                recognition = initSpeechRecognition();
-            }
-
-            if (!recognition) {
-                alert("Tu navegador no soporta reconocimiento de voz nativo.");
-                document.getElementById("toggleAutoSub").checked = false;
-                return;
-            }
-
-            if (enabled) {
-                try {
-                    recognition.start();
-                } catch (_) {}
-            } else {
-                try {
-                    recognition.stop();
-                } catch (_) {}
-                subBox.style.opacity = "0";
-                subBox.textContent = "";
+        function toggleSubtitles(activar) {
+            const player = document.getElementById("player");
+            if (player.textTracks && player.textTracks.length > 0) {
+                player.textTracks[0].mode = activar ? "showing" : "disabled";
             }
         }
 
         function reproducir(videoUrl) {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
+            const track = document.getElementById("videoTrack");
+            const toggle = document.getElementById("toggleAutoSub");
 
-            // Asignación directa a src y carga sin bloqueos CORS
+            // Preparar y filtrar la pista VTT
+            const vttOriginal = document.getElementById("embeddedSubtitles").textContent;
+            const vttFiltrado = limpiarVozVTT(vttOriginal);
+
+            const blob = new Blob([vttFiltrado], { type: "text/vtt" });
+            track.src = URL.createObjectURL(blob);
+
+            // Carga directa del video
             player.src = videoUrl;
             modal.style.display = "flex";
             player.load();
 
+            // Configurar visibilidad según el checkbox
+            player.textTracks[0].mode = toggle.checked ? "showing" : "disabled";
+
             const playPromise = player.play();
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.warn("Autoplay prevenido por política de navegador:", error);
+                playPromise.catch(err => {
+                    console.warn("Reproducción prevenida por el navegador:", err);
                 });
             }
-
-            player.onplay = () => {
-                if (isAutoSubActive && recognition) {
-                    try { recognition.start(); } catch (_) {}
-                }
-            };
-
-            player.onpause = () => {
-                if (recognition) {
-                    try { recognition.stop(); } catch (_) {}
-                }
-            };
         }
 
         function cerrarVideo() {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
-            const subBox = document.getElementById("liveSubText");
 
             modal.style.display = "none";
             player.pause();
-            player.removeAttribute('src');
+            player.removeAttribute("src");
             player.load();
-
-            if (recognition) {
-                try { recognition.stop(); } catch (_) {}
-            }
-            subBox.style.opacity = "0";
-            subBox.textContent = "";
         }
     </script>
 </body>
@@ -830,6 +773,7 @@ def home():
         PAGINA_WEB, 
         clave=CONTRASEÑA_CORRECTA, 
         url_video=VIDEO_URL,
+        subtitulos_raw=SUBTITULOS_VTT_BASE,
         portada=PORTADA_DEADPOOL
     )
 
