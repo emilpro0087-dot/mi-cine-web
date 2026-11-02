@@ -17,7 +17,7 @@ PAGINA_WEB = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Privado // Cinema Vault</title>
-    <!-- Icono de la pestaña (Favicon de Palomitas) -->
+    <!-- Icono de la pestaña -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -113,7 +113,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         /* -------------------------------------------
-           2. LOGIN CON MURAL DESENFOCADO
+           2. LOGIN SOBRE MURAL DE PÓSTERS NETFLIX
         ------------------------------------------- */
         #loginScreen {
             position: fixed;
@@ -131,27 +131,28 @@ PAGINA_WEB = """<!DOCTYPE html>
             position: absolute;
             inset: -40px;
             background-image: 
-                linear-gradient(rgba(10, 10, 15, 0.78), rgba(10, 10, 15, 0.85)),
-                url('https://image.tmdb.org/t/p/original/yDHYTfA3R0jFYba16jBB1ef8oIt.jpg');
+                radial-gradient(circle at center, rgba(10, 10, 15, 0.72) 0%, rgba(5, 5, 8, 0.92) 100%),
+                linear-gradient(rgba(10, 10, 15, 0.75), rgba(10, 10, 15, 0.85)),
+                url('https://assets.nflxext.com/ffe/siteui/vlv3/797858c0-2f95-44cb-a664-9f2066d4821a/48dd642c-f64f-43fc-8785-3db3aa84f5aa/ES-es-20240902-TRIFECTA-perspective_alpha_website_large.jpg');
             background-size: cover;
             background-position: center;
-            filter: blur(14px) saturate(1.2);
+            filter: blur(10px) brightness(0.65);
             transform: scale(1.08);
         }
 
         .login-card {
             position: relative;
             z-index: 10;
-            background: rgba(18, 18, 24, 0.85);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(18, 18, 24, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 16px;
             padding: 40px 35px;
             width: 380px;
             max-width: 88vw;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
         }
 
         .login-card h2 {
@@ -162,7 +163,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .login-card p {
             font-size: 13px;
-            color: #999;
+            color: #aaa;
             margin-bottom: 25px;
         }
 
@@ -171,8 +172,8 @@ PAGINA_WEB = """<!DOCTYPE html>
             padding: 14px;
             border-radius: 8px;
             border: 1px solid #333;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
+            background: rgba(0, 0, 0, 0.65);
+            color: #00f0ff;
             font-size: 18px;
             text-align: center;
             letter-spacing: 6px;
@@ -182,27 +183,28 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .input-group input:focus {
             border-color: #e50914;
-            box-shadow: 0 0 12px rgba(229, 9, 20, 0.5);
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.6);
         }
 
         .btn-submit {
             width: 100%;
-            padding: 13px;
-            background: #e50914;
+            padding: 14px;
+            background: linear-gradient(135deg, #e50914 0%, #b80d17 100%);
             color: #fff;
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin-top: 15px;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
         }
 
         .btn-submit:hover {
-            background: #b80d17;
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
         }
 
         .error-label {
@@ -214,7 +216,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         /* -------------------------------------------
-           3. CATÁLOGO CON FONDO NETFLIX Y TÍTULO PRO
+           3. CATÁLOGO CON FONDO NETFLIX OBLÍCUO
         ------------------------------------------- */
         #catalogSection {
             position: relative;
@@ -226,18 +228,20 @@ PAGINA_WEB = """<!DOCTYPE html>
             overflow: hidden;
         }
 
+        /* Muro inclinado estilo Netflix */
         .netflix-wall-bg {
             position: fixed;
-            inset: -20px;
+            inset: -40px;
             z-index: 1;
             background-image: 
-                radial-gradient(circle at center, rgba(14, 16, 24, 0.82) 0%, rgba(5, 6, 10, 0.96) 80%),
-                linear-gradient(to bottom, rgba(5, 6, 10, 0.7), rgba(5, 6, 10, 0.95)),
+                radial-gradient(circle at center, rgba(14, 16, 24, 0.65) 0%, rgba(5, 6, 10, 0.94) 85%),
+                linear-gradient(to bottom, rgba(5, 6, 10, 0.6), rgba(5, 6, 10, 0.95)),
                 url('https://assets.nflxext.com/ffe/siteui/vlv3/797858c0-2f95-44cb-a664-9f2066d4821a/48dd642c-f64f-43fc-8785-3db3aa84f5aa/ES-es-20240902-TRIFECTA-perspective_alpha_website_large.jpg');
             background-size: cover;
             background-position: center;
-            filter: blur(4px) brightness(0.65);
+            filter: contrast(1.15) brightness(0.6);
             pointer-events: none;
+            transform: scale(1.04);
         }
 
         .catalog-content {
@@ -308,27 +312,27 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         .sub-description {
-            color: #8c96a7;
+            color: #a0aec0;
             font-size: 14px;
             letter-spacing: 1px;
         }
 
         .movie-card {
-            background: rgba(20, 22, 30, 0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(20, 22, 30, 0.75);
+            backdrop-filter: blur(12px);
             border-radius: 14px;
             overflow: hidden;
             width: 270px;
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
         }
 
         .movie-card:hover {
             transform: translateY(-10px) scale(1.03);
             border-color: #e50914;
-            box-shadow: 0 20px 40px rgba(229, 9, 20, 0.45);
+            box-shadow: 0 20px 45px rgba(229, 9, 20, 0.5);
         }
 
         .movie-card img {
@@ -360,7 +364,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         .badge-pill {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12);
             padding: 2px 7px;
             border-radius: 4px;
             color: #fff;
@@ -372,7 +376,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             position: fixed;
             inset: 0;
             z-index: 6000;
-            background: rgba(0, 0, 0, 0.94);
+            background: rgba(0, 0, 0, 0.95);
             justify-content: center;
             align-items: center;
             padding: 20px;
@@ -386,7 +390,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             border-radius: 12px;
             border: 1px solid #333;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(229, 9, 20, 0.25);
+            box-shadow: 0 0 50px rgba(229, 9, 20, 0.3);
         }
 
         .modal-close {
@@ -453,7 +457,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 2. Login sobre pósters desenfocados -->
+    <!-- 2. Login sobre pósters inclinados -->
     <div id="loginScreen">
         <div class="movie-backdrop"></div>
         <div class="login-card" id="loginCard">
@@ -461,7 +465,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             <p>Introduce la clave para desbloquear tu cine personal</p>
             
             <div class="input-group">
-                <input type="password" id="passInput" placeholder="••••••••" autocomplete="off">
+                <input type="password" id="passInput" placeholder="••••••••" autocomplete="off" oninput="playAudio('type')">
             </div>
 
             <button class="btn-submit" onclick="validarAcceso()">INGRESAR AL CINE</button>
@@ -469,7 +473,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 3. Catálogo con fondo Netflix y Título Elaborado -->
+    <!-- 3. Catálogo con pósters Netflix y Título Elaborado -->
     <div id="catalogSection">
         <div class="netflix-wall-bg"></div>
 
@@ -483,7 +487,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <p class="sub-description">Catálogo seleccionado • Transmisión en Ultra HD</p>
             </div>
 
-            <div class="movie-card" onclick="reproducir('{{ url_video }}')">
+            <div class="movie-card" onclick="playAudio('open'); reproducir('{{ url_video }}')">
                 <img src="{{ portada }}" alt="Deadpool & Wolverine">
                 <div class="info">
                     <h3>Deadpool & Wolverine</h3>
@@ -507,6 +511,77 @@ PAGINA_WEB = """<!DOCTYPE html>
     </div>
 
     <script>
+        // ===============================================
+        // GENERADOR DE EFECTOS DE SONIDO FUTURISTAS (Web Audio)
+        // ===============================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAudio(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'type') {
+                // Bip suave al teclear
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1400, now + 0.04);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
+
+            } else if (type === 'success') {
+                // Secuencia ascendente futurista de acceso
+                [330, 440, 660, 880].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.09));
+                    gain.gain.setValueAtTime(0.12, now + (idx * 0.09));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.09) + 0.22);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (idx * 0.09));
+                    osc.stop(now + (idx * 0.09) + 0.22);
+                });
+
+            } else if (type === 'error') {
+                // Alarma descendente cibernética
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.28);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.28);
+
+            } else if (type === 'open') {
+                // Impacto grave cinematográfico (Braam)
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.6);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
+
         // Carga de compuertas
         window.addEventListener("DOMContentLoaded", () => {
             const bar = document.getElementById("progressBar");
@@ -537,7 +612,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             }, 60);
         });
 
-        // Acceso con Shake y Slide Down
+        // Acceso con Sonido + Shake y Slide Down
         function validarAcceso() {
             const input = document.getElementById("passInput");
             const error = document.getElementById("errorLabel");
@@ -545,6 +620,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             if (input.value === "{{ clave }}") {
                 error.innerText = "";
+                playAudio('success'); // Disparar sonido futurista de éxito
                 loginScreen.classList.add("screen-shake");
                 
                 setTimeout(() => {
@@ -552,6 +628,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                     loginScreen.classList.add("slide-down-exit");
                 }, 460);
             } else {
+                playAudio('error'); // Disparar sonido de error
                 error.innerText = "Contraseña denegada. Intento no autorizado.";
                 input.value = "";
                 const card = document.getElementById("loginCard");
