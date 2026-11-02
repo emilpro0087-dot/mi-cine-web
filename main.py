@@ -5,10 +5,21 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Enlace directo generado en Internet Archive
+# Enlace directo del archivo alojado en Internet Archive
 VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
-# Póster oficial en alta resolución
+# Subtítulos base (puedes añadir o reemplazar las líneas de tiempo que desees)
+SUBTITULOS_VTT = """WEBVTT
+
+1
+00:00:05.000 --> 00:00:09.000
+Benvenuti al cinema privato.
+
+2
+00:00:10.000 --> 00:00:15.000
+Deadpool & Wolverine - Sottotitoli in italiano.
+"""
+
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
 PAGINA_WEB = """<!DOCTYPE html>
@@ -17,7 +28,6 @@ PAGINA_WEB = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Privado // Cinema Vault</title>
-    <!-- Icono de la pestaña -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,9 +39,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             overflow-x: hidden;
         }
 
-        /* -------------------------------------------
-           1. PANTALLA DE CARGA (PUERTAS FUTURISTAS)
-        ------------------------------------------- */
+        /* 1. Pantalla de Carga Futurista */
         #loaderOverlay {
             position: fixed;
             inset: 0;
@@ -112,9 +120,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-family: monospace;
         }
 
-        /* -------------------------------------------
-           2. LOGIN SOBRE MURAL DE PÓSTERS NETFLIX
-        ------------------------------------------- */
+        /* 2. Login con Fondo Netflix Oblicuo */
         #loginScreen {
             position: fixed;
             inset: 0;
@@ -215,9 +221,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-weight: 500;
         }
 
-        /* -------------------------------------------
-           3. CATÁLOGO CON FONDO NETFLIX OBLÍCUO
-        ------------------------------------------- */
+        /* 3. Catálogo y Cabecera de Películas */
         #catalogSection {
             position: relative;
             min-height: 100vh;
@@ -228,7 +232,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             overflow: hidden;
         }
 
-        /* Muro inclinado estilo Netflix */
         .netflix-wall-bg {
             position: fixed;
             inset: -40px;
@@ -370,7 +373,14 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #fff;
         }
 
-        /* Modal Reproductor */
+        ::cue {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffd700;
+            font-size: 19px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -410,17 +420,8 @@ PAGINA_WEB = """<!DOCTYPE html>
             outline: none;
         }
 
-        /* Animaciones */
-        @keyframes spinGear {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes spinGearRev {
-            from { transform: rotate(360deg); }
-            to { transform: rotate(0deg); }
-        }
-
+        @keyframes spinGear { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spinGearRev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
         @keyframes seismicShake {
             0% { transform: translate(0, 0) rotate(0deg); }
             15% { transform: translate(-6px, 4px) rotate(-1deg); }
@@ -431,10 +432,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             100% { transform: translate(0, 0) rotate(0deg); }
         }
 
-        .screen-shake {
-            animation: seismicShake 0.45s ease-in-out forwards;
-        }
-
+        .screen-shake { animation: seismicShake 0.45s ease-in-out forwards; }
         .slide-down-exit {
             transition: transform 0.85s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.85s ease !important;
             transform: translateY(120vh) !important;
@@ -445,7 +443,6 @@ PAGINA_WEB = """<!DOCTYPE html>
 </head>
 <body>
 
-    <!-- 1. Carga futurista -->
     <div id="loaderOverlay">
         <div class="door-frame">
             <div class="door-graphics"></div>
@@ -457,7 +454,6 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 2. Login sobre pósters inclinados -->
     <div id="loginScreen">
         <div class="movie-backdrop"></div>
         <div class="login-card" id="loginCard">
@@ -473,7 +469,6 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 3. Catálogo con pósters Netflix y Título Elaborado -->
     <div id="catalogSection">
         <div class="netflix-wall-bg"></div>
 
@@ -493,6 +488,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                     <h3>Deadpool & Wolverine</h3>
                     <div class="badges">
                         <span class="badge-pill">4K ULTRA HD</span>
+                        <span class="badge-pill">SUB: ITA</span>
                         <span>Acción • Comedia</span>
                     </div>
                 </div>
@@ -500,20 +496,19 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Modal del reproductor -->
     <div id="videoModal" class="modal">
         <div class="modal-box">
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
-            <video id="player" controls>
+            <video id="player" controls crossorigin="anonymous">
                 <source id="videoSource" src="" type="video/mp4">
+                <track id="videoTrack" label="Italiano" kind="subtitles" srclang="it" default>
             </video>
         </div>
     </div>
 
+    <script id="embeddedSubtitles" type="text/vtt">{{ subtitulos_raw | safe }}</script>
+
     <script>
-        // ===============================================
-        // GENERADOR DE EFECTOS DE SONIDO FUTURISTAS (Web Audio)
-        // ===============================================
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playAudio(type) {
@@ -524,7 +519,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             const now = audioCtx.currentTime;
 
             if (type === 'type') {
-                // Bip suave al teclear
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
@@ -538,7 +532,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                 osc.stop(now + 0.04);
 
             } else if (type === 'success') {
-                // Secuencia ascendente futurista de acceso
                 [330, 440, 660, 880].forEach((freq, idx) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -553,7 +546,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                 });
 
             } else if (type === 'error') {
-                // Alarma descendente cibernética
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sawtooth';
@@ -567,7 +559,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                 osc.stop(now + 0.28);
 
             } else if (type === 'open') {
-                // Impacto grave cinematográfico (Braam)
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
@@ -582,7 +573,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         }
 
-        // Carga de compuertas
         window.addEventListener("DOMContentLoaded", () => {
             const bar = document.getElementById("progressBar");
             const label = document.getElementById("statusLabel");
@@ -612,7 +602,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             }, 60);
         });
 
-        // Acceso con Sonido + Shake y Slide Down
         function validarAcceso() {
             const input = document.getElementById("passInput");
             const error = document.getElementById("errorLabel");
@@ -620,7 +609,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             if (input.value === "{{ clave }}") {
                 error.innerText = "";
-                playAudio('success'); // Disparar sonido futurista de éxito
+                playAudio('success');
                 loginScreen.classList.add("screen-shake");
                 
                 setTimeout(() => {
@@ -628,7 +617,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                     loginScreen.classList.add("slide-down-exit");
                 }, 460);
             } else {
-                playAudio('error'); // Disparar sonido de error
+                playAudio('error');
                 error.innerText = "Contraseña denegada. Intento no autorizado.";
                 input.value = "";
                 const card = document.getElementById("loginCard");
@@ -643,12 +632,25 @@ PAGINA_WEB = """<!DOCTYPE html>
             if (e.key === "Enter") validarAcceso();
         });
 
-        // Modal de reproducción
-        function reproducir(url) {
+        function reproducir(videoUrl) {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
             const source = document.getElementById("videoSource");
-            source.src = url;
+            const track = document.getElementById("videoTrack");
+            
+            // Cargar subtítulos en memoria
+            let vttRaw = document.getElementById("embeddedSubtitles").textContent;
+            
+            // Filtro: limpia ruidos entre corchetes, paréntesis o notas musicales
+            vttRaw = vttRaw.replace(/\\[.*?\\]/g, "")
+                           .replace(/\\(.*?\\)/g, "")
+                           .replace(/♪.*?♪/g, "")
+                           .replace(/[♪#]/g, "");
+
+            const vttBlob = new Blob([vttRaw], { type: 'text/vtt' });
+            track.src = URL.createObjectURL(vttBlob);
+
+            source.src = videoUrl;
             player.load();
             modal.style.display = "flex";
             player.play();
@@ -670,6 +672,7 @@ def home():
         PAGINA_WEB, 
         clave=CONTRASEÑA_CORRECTA, 
         url_video=VIDEO_URL,
+        subtitulos_raw=SUBTITULOS_VTT,
         portada=PORTADA_DEADPOOL
     )
 
