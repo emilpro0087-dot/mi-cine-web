@@ -17,6 +17,8 @@ PAGINA_WEB = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Privado // Cinema Vault</title>
+    <!-- Icono de la pestaña (Favicon de Palomitas) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -224,7 +226,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             overflow: hidden;
         }
 
-        /* Fondo de películas apiladas estilo Netflix */
         .netflix-wall-bg {
             position: fixed;
             inset: -20px;
@@ -249,7 +250,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             align-items: center;
         }
 
-        /* Título Elaborado Cine Privado */
         .elaborate-header {
             text-align: center;
             margin-bottom: 45px;
@@ -313,7 +313,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             letter-spacing: 1px;
         }
 
-        /* Tarjeta de Película */
         .movie-card {
             background: rgba(20, 22, 30, 0.7);
             backdrop-filter: blur(10px);
