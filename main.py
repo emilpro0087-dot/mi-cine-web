@@ -10,7 +10,7 @@ VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
-# Subtítulos en italiano (aquí puedes pegar tu archivo VTT o SRT completo con todas las líneas de la película)
+# Subtítulos en italiano (aquí puedes colocar tu texto VTT/SRT completo sincronizado)
 SUBTITULOS_VTT_BASE = """WEBVTT
 
 1
@@ -374,7 +374,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #fff;
         }
 
-        /* Formato y posición de subtítulos en pantalla */
+        /* Subtítulos personalizados nativos */
         ::cue {
             background-color: rgba(0, 0, 0, 0.85);
             color: #ffd700;
@@ -452,6 +452,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             width: 100%;
             display: block;
             outline: none;
+            background: #000;
         }
 
         @keyframes spinGear { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -541,11 +542,11 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
 
-            <video id="player" controls playsinline crossorigin="anonymous"></video>
+            <!-- Sin crossorigin para permitir que Archive.org cargue sin bloqueo -->
+            <video id="player" controls playsinline></video>
         </div>
     </div>
 
-    <!-- Contenedor con la pista de texto original -->
     <script id="embeddedSubtitles" type="text/vtt">{{ subtitulos_raw | safe }}</script>
 
     <script>
@@ -665,136 +666,3 @@ PAGINA_WEB = """<!DOCTYPE html>
                 setTimeout(() => { card.style.transform = "translateX(8px)"; }, 80);
                 setTimeout(() => { card.style.transform = "translateX(-4px)"; }, 160);
                 setTimeout(() => { card.style.transform = "translateX(0)"; }, 240);
-            }
-        }
-
-        document.getElementById("passInput").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") validarAcceso();
-        });
-
-        // FILTRO: extrae solo diálogos parlados, descartando notas musicales y sonidos descriptivos
-        function limpiarVozVTT(vttTexto) {
-            // Normalizar saltos de línea
-            const normalizado = vttTexto.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n');
-            const bloques = normalizado.split('\\n\\n');
-            const resultado = [];
-
-            for (const bloque of bloques) {
-                const lineas = bloque.trim().split('\\n');
-                if (!lineas || lineas.length === 0 || !lineas[0]) continue;
-
-                if (lineas[0].startsWith("WEBVTT")) {
-                    resultado.push(lineas.join('\\n'));
-                    continue;
-                }
-
-                const timingIndex = lineas.findIndex(l => l.includes("-->"));
-                if (timingIndex === -1) continue;
-
-                const lineasTexto = lineas.slice(timingIndex + 1);
-                const lineasLimpiaz = [];
-
-                for (let texto of lineasTexto) {
-                    // Eliminar símbolos y notas musicales
-                    texto = texto.replace(/[♪♫#♬♩]/g, "");
-                    // Eliminar efectos descriptivos entre corchetes o paréntesis: [Musica], (Gemito)
-                    texto = texto.replace(/\\[.*?\\]/g, "");
-                    texto = texto.replace(/\\(.*?\\)/g, "");
-                    texto = texto.trim();
-
-                    if (texto.length > 0) {
-                        lineasLimpiaz.push(texto);
-                    }
-                }
-
-                // Guardar bloque únicamente si contiene voces reales
-                if (lineasLimpiaz.length > 0) {
-                    const cabecera = lineas.slice(0, timingIndex + 1);
-                    resultado.push([...cabecera, ...lineasLimpiaz].join('\\n'));
-                }
-            }
-
-            return resultado.join('\\n\\n');
-        }
-
-        function toggleSubtitles(activar) {
-            const player = document.getElementById("player");
-            if (player.textTracks && player.textTracks.length > 0) {
-                for (let i = 0; i < player.textTracks.length; i++) {
-                    player.textTracks[i].mode = activar ? "showing" : "disabled";
-                }
-            }
-        }
-
-        function reproducir(videoUrl) {
-            const modal = document.getElementById("videoModal");
-            const player = document.getElementById("player");
-            const toggle = document.getElementById("toggleAutoSub");
-
-            // Limpiar tracks anteriores para forzar a Chrome a recargar la nueva pista limpia
-            while (player.firstChild) {
-                player.removeChild(player.firstChild);
-            }
-
-            const vttOriginal = document.getElementById("embeddedSubtitles").textContent;
-            const vttFiltrado = limpiarVozVTT(vttOriginal);
-
-            const blob = new Blob([vttFiltrado], { type: "text/vtt;charset=utf-8" });
-            const trackUrl = URL.createObjectURL(blob);
-
-            const track = document.createElement("track");
-            track.id = "videoTrack";
-            track.kind = "subtitles";
-            track.srclang = "it";
-            track.label = "Italiano (Solo Voce)";
-            track.src = trackUrl;
-            track.default = true;
-
-            player.appendChild(track);
-            player.src = videoUrl;
-            modal.style.display = "flex";
-            player.load();
-
-            player.onloadedmetadata = function() {
-                if (player.textTracks && player.textTracks.length > 0) {
-                    player.textTracks[0].mode = toggle.checked ? "showing" : "disabled";
-                }
-            };
-
-            const playPromise = player.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(err => {
-                    console.warn("Reproducción diferida por política de navegador:", err);
-                });
-            }
-        }
-
-        function cerrarVideo() {
-            const modal = document.getElementById("videoModal");
-            const player = document.getElementById("player");
-
-            modal.style.display = "none";
-            player.pause();
-            player.removeAttribute("src");
-            while (player.firstChild) {
-                player.removeChild(player.firstChild);
-            }
-            player.load();
-        }
-    </script>
-</body>
-</html>"""
-
-@app.route('/')
-def home():
-    return render_template_string(
-        PAGINA_WEB, 
-        clave=CONTRASEÑA_CORRECTA, 
-        url_video=VIDEO_URL,
-        subtitulos_raw=SUBTITULOS_VTT_BASE,
-        portada=PORTADA_DEADPOOL
-    )
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
