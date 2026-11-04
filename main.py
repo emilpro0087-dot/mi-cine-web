@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Cambia este enlace por el enlace directo al archivo .mp4 de Archive.org
+# Enlace al archivo de video (reemplaza si es necesario con el enlace directo .mp4 de Archive.org)
 VIDEO_URL_ORIGINAL = "https://archive.org/download/deadpool-and-wolverine_202611/miproyecto_1.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
@@ -41,6 +41,27 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
+        }
+
+        /* Insignia de versión en la esquina superior izquierda */
+        .version-badge {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 9999;
+            background: rgba(10, 16, 26, 0.85);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #00f0ff;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+            backdrop-filter: blur(8px);
+            user-select: none;
+            pointer-events: none;
         }
 
         #loaderOverlay {
@@ -507,6 +528,9 @@ PAGINA_WEB = """<!DOCTYPE html>
 </head>
 <body>
 
+    <!-- Insignia fija v0.0 en la esquina superior izquierda -->
+    <div class="version-badge">v0.0</div>
+
     <div id="loaderOverlay">
         <div class="door-frame">
             <div class="door-graphics"></div>
@@ -748,7 +772,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             return (h * 3600) + (m * 60) + s;
         }
 
-        // LIMPIEZA DE SUBTÍTULOS: FILTRO ESTRICTO SOLO VOZ HABLADA
+        // Limpieza de subtítulos: SOLO VOZ HABLADA
         function cargarSubtitulosEnPlayer(player) {
             while (player.firstChild) {
                 player.removeChild(player.firstChild);
@@ -775,17 +799,12 @@ PAGINA_WEB = """<!DOCTYPE html>
                 const dialogos = [];
 
                 for (let txt of textoLineas) {
-                    // 1. Quitar notas musicales y acordes
                     txt = txt.replace(/[♪♫#♬♩]/g, "");
-                    // 2. Quitar anotaciones entre corchetes [aplausos], [música], [risas]
                     txt = txt.replace(/\\[.*?\\]/g, "");
-                    // 3. Quitar sonidos entre paréntesis (gritos), (suspiro), (ruido)
                     txt = txt.replace(/\\(.*?\\)/g, "");
-                    // 4. Quitar etiquetas de hablante en mayúsculas como "HOMBRE:" o "NARRADOR:"
                     txt = txt.replace(/^[A-ZÀ-Ú0-9_\\s]+:\\s*/g, "");
                     txt = txt.trim();
 
-                    // Solo añadimos si contiene texto real hablado
                     if (txt.length > 0) {
                         dialogos.push(txt);
                     }
@@ -822,7 +841,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             const playPromise = player.play();
             if (playPromise !== undefined) {
                 playPromise.catch(err => {
-                    console.warn("Interacción requerida por el navegador:", err);
+                    console.warn("Interazione utente richiesta dal browser:", err);
                 });
             }
         }
@@ -837,7 +856,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             player.load();
         }
 
-        // --- SISTEMA DEL JUEGO WEB CANVAS ---
+        // Lógica del Videojuego Web Canvas
         let gameLoopId = null;
         let paddle = { x: 350, y: 410, w: 100, h: 14, dx: 7 };
         let ball = { x: 400, y: 200, r: 8, dx: 4, dy: -4 };
@@ -894,20 +913,16 @@ PAGINA_WEB = """<!DOCTYPE html>
             ctx.fillStyle = "#05070f";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Mover la paleta
             if (rightPressed && paddle.x < canvas.width - paddle.w) paddle.x += paddle.dx;
             if (leftPressed && paddle.x > 0) paddle.x -= paddle.dx;
 
             if (gameRunning) {
-                // Mover bola
                 ball.x += ball.dx;
                 ball.y += ball.dy;
 
-                // Colisión con paredes
                 if (ball.x + ball.r > canvas.width || ball.x - ball.r < 0) ball.dx = -ball.dx;
                 if (ball.y - ball.r < 0) ball.dy = -ball.dy;
 
-                // Colisión con la pala
                 if (
                     ball.y + ball.r >= paddle.y &&
                     ball.x >= paddle.x &&
@@ -917,20 +932,17 @@ PAGINA_WEB = """<!DOCTYPE html>
                     playAudio('type');
                 }
 
-                // Pérdida
                 if (ball.y + ball.r > canvas.height) {
                     gameRunning = false;
                     playAudio('error');
                 }
             }
 
-            // Dibujar pala
             ctx.fillStyle = "#00f0ff";
             ctx.shadowColor = "#00f0ff";
             ctx.shadowBlur = 12;
             ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 
-            // Dibujar bola
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
             ctx.fillStyle = "#ff0055";
@@ -962,7 +974,6 @@ def home():
         portada=PORTADA_DEADPOOL
     )
 
-# Proxy de streaming con soporte para Range Requests
 @app.route('/stream-video')
 def stream_video():
     range_header = request.headers.get('Range', None)
