@@ -5,41 +5,33 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Enlace directo del video
+# Link diretto del video
 VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
-# Subtítulos base (puedes pegar aquí tu archivo VTT/SRT completo de la película)
+# Sottotitoli base in Italiano (solo dialoghi / parlato)
 SUBTITULOS_VTT_BASE = """WEBVTT
 
 1
-00:00:03.000 --> 00:00:07.000
-♪ Música de introducción de Marvel ♪
+00:00:08.000 --> 00:00:13.000
+Ciao a tutti, bentornati.
 
 2
-00:00:08.000 --> 00:00:13.000
-"Hola a todos", bienvenidos de nuevo.
+00:00:19.000 --> 00:00:23.000
+Credevate davvero che sarei rimasto tranquillo a casa?
 
 3
-00:00:14.000 --> 00:00:18.000
-[Disparos y explosiones en el fondo]
-
-4
-00:00:19.000 --> 00:00:23.000
-¿Creían que me quedaría tranquilo en casa?
-
-5
 00:00:24.000 --> 00:00:28.000
-No mientras el multiverso esté en peligro.
+Non finché il multiverso è in pericolo.
 """
 
 PAGINA_WEB = """<!DOCTYPE html>
-<html lang="es">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cine Privado // Cinema Vault</title>
+    <title>Cinema Privato // Cinema Vault</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -382,7 +374,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #fff;
         }
 
-        /* Estilo visual de subtítulos en el reproductor */
+        /* Stile visivo dei sottotitoli nel player */
         ::cue {
             background-color: rgba(0, 0, 0, 0.85);
             color: #ffd700;
@@ -467,316 +459,4 @@ PAGINA_WEB = """<!DOCTYPE html>
         @keyframes seismicShake {
             0% { transform: translate(0, 0) rotate(0deg); }
             15% { transform: translate(-6px, 4px) rotate(-1deg); }
-            30% { transform: translate(6px, -4px) rotate(1.2deg); }
-            45% { transform: translate(-5px, -3px) rotate(-1deg); }
-            60% { transform: translate(5px, 3px) rotate(0.8deg); }
-            75% { transform: translate(-3px, 1px) rotate(-0.5deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-
-        .screen-shake { animation: seismicShake 0.45s ease-in-out forwards; }
-        .slide-down-exit {
-            transition: transform 0.85s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.85s ease !important;
-            transform: translateY(120vh) !important;
-            opacity: 0 !important;
-            pointer-events: none;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="loaderOverlay">
-        <div class="door-frame">
-            <div class="door-graphics"></div>
-            <div class="loader-title">DESENCRIPTANDO BÓVEDA</div>
-            <div class="progress-bar-container">
-                <div id="progressBar" class="progress-bar-fill"></div>
-            </div>
-            <div id="statusLabel" class="status-text">Iniciando protocolo de compuertas... (0%)</div>
-        </div>
-    </div>
-
-    <div id="loginScreen">
-        <div class="movie-backdrop"></div>
-        <div class="login-card" id="loginCard">
-            <h2>ACCESO PRIVADO</h2>
-            <p>Introduce la clave para desbloquear tu cine personal</p>
-            
-            <div class="input-group">
-                <input type="password" id="passInput" placeholder="••••••••" autocomplete="off" oninput="playAudio('type')">
-            </div>
-
-            <button class="btn-submit" onclick="validarAcceso()">INGRESAR AL CINE</button>
-            <div id="errorLabel" class="error-label"></div>
-        </div>
-    </div>
-
-    <div id="catalogSection">
-        <div class="netflix-wall-bg"></div>
-
-        <div class="catalog-content">
-            <div class="elaborate-header">
-                <div class="meta-tagline">
-                    <span></span> SERVIDOR PRIVADO EXCLUSIVO
-                </div>
-                <h1 class="cinema-title">CINE <em>PRIVADO</em></h1>
-                <div class="title-divider"></div>
-                <p class="sub-description">Catálogo seleccionado • Transmisión en Ultra HD</p>
-            </div>
-
-            <div class="movie-card" onclick="playAudio('open'); reproducir('{{ url_video }}')">
-                <img src="{{ portada }}" alt="Deadpool & Wolverine">
-                <div class="info">
-                    <h3>Deadpool & Wolverine</h3>
-                    <div class="badges">
-                        <span class="badge-pill">4K ULTRA HD</span>
-                        <span class="badge-pill">SUB (SOLO VOZ)</span>
-                        <span>Acción • Comedia</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="videoModal" class="modal">
-        <div class="modal-box">
-            <div class="subtitle-controls">
-                <label>
-                    <input type="checkbox" id="toggleAutoSub" onchange="toggleSubtitles(this.checked)">
-                    Subtítulos (Solo Voz)
-                </label>
-            </div>
-
-            <span class="modal-close" onclick="cerrarVideo()">&times;</span>
-
-            <video id="player" controls playsinline>
-                <track id="videoTrack" kind="subtitles" srclang="es" label="Español (Solo Voz)">
-            </video>
-        </div>
-    </div>
-
-    <!-- Pista base con los subtítulos -->
-    <script id="embeddedSubtitles" type="text/vtt">{{ subtitulos_raw | safe }}</script>
-
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playAudio(type) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            const now = audioCtx.currentTime;
-
-            if (type === 'type') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.exponentialRampToValueAtTime(1400, now + 0.04);
-                gain.gain.setValueAtTime(0.08, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.04);
-
-            } else if (type === 'success') {
-                [330, 440, 660, 880].forEach((freq, idx) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(freq, now + (idx * 0.09));
-                    gain.gain.setValueAtTime(0.12, now + (idx * 0.09));
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.09) + 0.22);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + (idx * 0.09));
-                    osc.stop(now + (idx * 0.09) + 0.22);
-                });
-
-            } else if (type === 'error') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(260, now);
-                osc.frequency.linearRampToValueAtTime(110, now + 0.28);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.28);
-
-            } else if (type === 'open') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(140, now);
-                osc.frequency.exponentialRampToValueAtTime(45, now + 0.6);
-                gain.gain.setValueAtTime(0.35, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.6);
-            }
-        }
-
-        window.addEventListener("DOMContentLoaded", () => {
-            const bar = document.getElementById("progressBar");
-            const label = document.getElementById("statusLabel");
-            const loader = document.getElementById("loaderOverlay");
-            const login = document.getElementById("loginScreen");
-
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.floor(Math.random() * 7) + 3;
-                if (progress > 100) progress = 100;
-
-                bar.style.width = progress + "%";
-                label.innerText = `Alineando compuertas magnéticas... (${progress}%)`;
-
-                if (progress === 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        loader.style.opacity = "0";
-                        setTimeout(() => {
-                            loader.style.visibility = "hidden";
-                            login.style.visibility = "visible";
-                            login.style.opacity = "1";
-                            document.getElementById("passInput").focus();
-                        }, 500);
-                    }, 400);
-                }
-            }, 60);
-        });
-
-        function validarAcceso() {
-            const input = document.getElementById("passInput");
-            const error = document.getElementById("errorLabel");
-            const loginScreen = document.getElementById("loginScreen");
-
-            if (input.value === "{{ clave }}") {
-                error.innerText = "";
-                playAudio('success');
-                loginScreen.classList.add("screen-shake");
-                
-                setTimeout(() => {
-                    loginScreen.classList.remove("screen-shake");
-                    loginScreen.classList.add("slide-down-exit");
-                }, 460);
-            } else {
-                playAudio('error');
-                error.innerText = "Contraseña denegada. Intento no autorizado.";
-                input.value = "";
-                const card = document.getElementById("loginCard");
-                card.style.transform = "translateX(-8px)";
-                setTimeout(() => { card.style.transform = "translateX(8px)"; }, 80);
-                setTimeout(() => { card.style.transform = "translateX(-4px)"; }, 160);
-                setTimeout(() => { card.style.transform = "translateX(0)"; }, 240);
-            }
-        }
-
-        document.getElementById("passInput").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") validarAcceso();
-        });
-
-        // FILTRO DE VOCES: Elimina notas musicales, texto entre comillas y ruidos
-        function limpiarVozVTT(vttTexto) {
-            const lineas = vttTexto.split('\\n');
-            const resultado = [];
-
-            for (let linea of lineas) {
-                // Conservar cabeceras y marcas de tiempo
-                if (linea.startsWith("WEBVTT") || linea.includes("-->") || /^[0-9]+$/.test(linea.trim())) {
-                    resultado.push(linea);
-                    continue;
-                }
-
-                let texto = linea;
-
-                // 1. Descartar si toda la línea o fragmento es música o notas
-                if (/[♪♫#♬♩]/.test(texto)) {
-                    texto = texto.replace(/♪.*?♪/g, "").replace(/[♪♫#♬♩]/g, "");
-                }
-
-                // 2. Eliminar texto entre comillas completas
-                texto = texto.replace(/"[^"]*"/g, "");
-                texto = texto.replace(/'[^']*'/g, "");
-                texto = texto.replace(/«[^»]*»/g, "");
-                texto = texto.replace(/[“”][^“”]*[“”]/g, "");
-                texto = texto.replace(/["'«»“”]/g, "");
-
-                // 3. Eliminar efectos de sonido entre corchetes o paréntesis [Música], (Grito)
-                texto = texto.replace(/\\[.*?\\]/g, "");
-                texto = texto.replace(/\\(.*?\\)/g, "");
-
-                resultado.push(texto.trim());
-            }
-
-            return resultado.join('\\n');
-        }
-
-        function toggleSubtitles(activar) {
-            const player = document.getElementById("player");
-            if (player.textTracks && player.textTracks.length > 0) {
-                player.textTracks[0].mode = activar ? "showing" : "disabled";
-            }
-        }
-
-        function reproducir(videoUrl) {
-            const modal = document.getElementById("videoModal");
-            const player = document.getElementById("player");
-            const track = document.getElementById("videoTrack");
-            const toggle = document.getElementById("toggleAutoSub");
-
-            // Preparar y filtrar la pista VTT
-            const vttOriginal = document.getElementById("embeddedSubtitles").textContent;
-            const vttFiltrado = limpiarVozVTT(vttOriginal);
-
-            const blob = new Blob([vttFiltrado], { type: "text/vtt" });
-            track.src = URL.createObjectURL(blob);
-
-            // Carga directa del video
-            player.src = videoUrl;
-            modal.style.display = "flex";
-            player.load();
-
-            // Configurar visibilidad según el checkbox
-            player.textTracks[0].mode = toggle.checked ? "showing" : "disabled";
-
-            const playPromise = player.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(err => {
-                    console.warn("Reproducción prevenida por el navegador:", err);
-                });
-            }
-        }
-
-        function cerrarVideo() {
-            const modal = document.getElementById("videoModal");
-            const player = document.getElementById("player");
-
-            modal.style.display = "none";
-            player.pause();
-            player.removeAttribute("src");
-            player.load();
-        }
-    </script>
-</body>
-</html>"""
-
-@app.route('/')
-def home():
-    return render_template_string(
-        PAGINA_WEB, 
-        clave=CONTRASEÑA_CORRECTA, 
-        url_video=VIDEO_URL,
-        subtitulos_raw=SUBTITULOS_VTT_BASE,
-        portada=PORTADA_DEADPOOL
-    )
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+            30% { transform: translate(6px, -4px) rotate(
