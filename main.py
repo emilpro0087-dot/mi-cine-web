@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# ENLACE DIRECTO REAL: Cambia el nombre final si en "MPEG4" de Archive.org tiene otro nombre exacto
+# Cambia este enlace por el enlace directo al archivo .mp4 de Archive.org
 VIDEO_URL_ORIGINAL = "https://archive.org/download/deadpool-and-wolverine_202611/miproyecto_1.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
@@ -15,15 +15,15 @@ SUBTITULOS_VTT_BASE = """WEBVTT
 
 1
 00:00:08.000 --> 00:00:13.000
-Ciao a tutti, bentornati.
+[Musica drammatica] Ciao a tutti, bentornati. (applausi)
 
 2
 00:00:19.000 --> 00:00:23.000
-Credevate davvero che sarei rimasto tranquillo a casa?
+♪ Suono di chitarra ♪ Credevate davvero che sarei rimasto tranquillo a casa?
 
 3
 00:00:24.000 --> 00:00:28.000
-Non finché il multiverso è in pericolo.
+[RUMORE DI TUONO] Non finché il multiverso è in pericolo.
 """
 
 PAGINA_WEB = """<!DOCTYPE html>
@@ -31,7 +31,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinema Privato // Cinema Vault</title>
+    <title>Cinema Privato // Cinema & Arcade Vault</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -321,6 +321,14 @@ PAGINA_WEB = """<!DOCTYPE html>
             letter-spacing: 1px;
         }
 
+        .catalog-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+        }
+
         .movie-card {
             background: rgba(20, 22, 30, 0.75);
             backdrop-filter: blur(12px);
@@ -337,6 +345,11 @@ PAGINA_WEB = """<!DOCTYPE html>
             transform: translateY(-10px) scale(1.03);
             border-color: #e50914;
             box-shadow: 0 20px 45px rgba(229, 9, 20, 0.5);
+        }
+
+        .movie-card.game-card:hover {
+            border-color: #00f0ff;
+            box-shadow: 0 20px 45px rgba(0, 240, 255, 0.5);
         }
 
         .movie-card img {
@@ -454,6 +467,23 @@ PAGINA_WEB = """<!DOCTYPE html>
             background: #000;
         }
 
+        #gameCanvas {
+            background: #05070f;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+        }
+
+        .game-controls-bar {
+            text-align: center;
+            padding: 12px;
+            background: #0d111a;
+            color: #00f0ff;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
         @keyframes spinGear { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spinGearRev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
         @keyframes seismicShake {
@@ -511,26 +541,45 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <div class="meta-tagline">
                     <span></span> SERVER PRIVATO ESCLUSIVO
                 </div>
-                <h1 class="cinema-title">CINEMA <em>PRIVATO</em></h1>
+                <h1 class="cinema-title">CINEMA & <em>ARCADE</em></h1>
                 <div class="title-divider"></div>
-                <p class="sub-description">Catalogo selezionato • Streaming Ultra HD</p>
+                <p class="sub-description">Catalogo selezionato • Streaming Ultra HD & Giochi Web</p>
             </div>
 
-            <!-- El reproductor ahora llama al endpoint interno /stream-video -->
-            <div class="movie-card" onclick="playAudio('open'); reproducir('/stream-video')">
-                <img src="{{ portada }}" alt="Deadpool & Wolverine">
-                <div class="info">
-                    <h3>Deadpool & Wolverine</h3>
-                    <div class="badges">
-                        <span class="badge-pill">4K ULTRA HD</span>
-                        <span class="badge-pill">SUB (SOLO VOCE)</span>
-                        <span>Azione • Commedia</span>
+            <div class="catalog-grid">
+                <!-- Tarjeta 1: Película Deadpool & Wolverine -->
+                <div class="movie-card" onclick="playAudio('open'); reproducir('/stream-video')">
+                    <img src="{{ portada }}" alt="Deadpool & Wolverine">
+                    <div class="info">
+                        <h3>Deadpool & Wolverine</h3>
+                        <div class="badges">
+                            <span class="badge-pill">4K ULTRA HD</span>
+                            <span class="badge-pill">SUB (SOLO VOCE)</span>
+                            <span>Azione • Commedia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Apartado de JUEGO WEB -->
+                <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego()">
+                    <div style="height: 390px; background: radial-gradient(circle, #0e1e38 0%, #060911 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                        <span style="font-size: 80px; filter: drop-shadow(0 0 20px #00f0ff);">🎮</span>
+                        <span style="font-family: monospace; font-size: 13px; letter-spacing: 3px; color: #00f0ff;">ZONA ARCADE</span>
+                    </div>
+                    <div class="info">
+                        <h3>SEZIONE GIOCO</h3>
+                        <div class="badges">
+                            <span class="badge-pill" style="border-color: #00f0ff; color: #00f0ff;">WEB CANVAS</span>
+                            <span class="badge-pill">INTERATTIVO</span>
+                            <span>Arcade 2D</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal del Reproductor de Video -->
     <div id="videoModal" class="modal">
         <div class="modal-box">
             <div class="subtitle-controls">
@@ -543,6 +592,19 @@ PAGINA_WEB = """<!DOCTYPE html>
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
 
             <video id="player" controls playsinline></video>
+        </div>
+    </div>
+
+    <!-- Modal del Juego Web Canvas -->
+    <div id="gameModal" class="modal">
+        <div class="modal-box" style="border-color: #00f0ff; max-width: 840px;">
+            <span class="modal-close" onclick="cerrarJuego()">&times;</span>
+            <div style="padding: 15px; text-align: center;">
+                <canvas id="gameCanvas" width="800" height="450"></canvas>
+            </div>
+            <div class="game-controls-bar">
+                Usa [FRECCE ← →] o [A / D] per muovere la navetta • SPAZIO per iniziare/ricominciare
+            </div>
         </div>
     </div>
 
@@ -686,6 +748,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             return (h * 3600) + (m * 60) + s;
         }
 
+        // LIMPIEZA DE SUBTÍTULOS: FILTRO ESTRICTO SOLO VOZ HABLADA
         function cargarSubtitulosEnPlayer(player) {
             while (player.firstChild) {
                 player.removeChild(player.firstChild);
@@ -712,11 +775,17 @@ PAGINA_WEB = """<!DOCTYPE html>
                 const dialogos = [];
 
                 for (let txt of textoLineas) {
+                    // 1. Quitar notas musicales y acordes
                     txt = txt.replace(/[♪♫#♬♩]/g, "");
+                    // 2. Quitar anotaciones entre corchetes [aplausos], [música], [risas]
                     txt = txt.replace(/\\[.*?\\]/g, "");
+                    // 3. Quitar sonidos entre paréntesis (gritos), (suspiro), (ruido)
                     txt = txt.replace(/\\(.*?\\)/g, "");
+                    // 4. Quitar etiquetas de hablante en mayúsculas como "HOMBRE:" o "NARRADOR:"
+                    txt = txt.replace(/^[A-ZÀ-Ú0-9_\\s]+:\\s*/g, "");
                     txt = txt.trim();
 
+                    // Solo añadimos si contiene texto real hablado
                     if (txt.length > 0) {
                         dialogos.push(txt);
                     }
@@ -753,7 +822,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             const playPromise = player.play();
             if (playPromise !== undefined) {
                 playPromise.catch(err => {
-                    console.warn("Esperando interacción de usuario:", err);
+                    console.warn("Interacción requerida por el navegador:", err);
                 });
             }
         }
@@ -766,6 +835,119 @@ PAGINA_WEB = """<!DOCTYPE html>
             player.pause();
             player.removeAttribute("src");
             player.load();
+        }
+
+        // --- SISTEMA DEL JUEGO WEB CANVAS ---
+        let gameLoopId = null;
+        let paddle = { x: 350, y: 410, w: 100, h: 14, dx: 7 };
+        let ball = { x: 400, y: 200, r: 8, dx: 4, dy: -4 };
+        let rightPressed = false;
+        let leftPressed = false;
+        let gameRunning = false;
+
+        function abrirJuego() {
+            const modal = document.getElementById("gameModal");
+            modal.style.display = "flex";
+            resetGame();
+            if (!gameLoopId) {
+                gameLoop();
+            }
+        }
+
+        function cerrarJuego() {
+            const modal = document.getElementById("gameModal");
+            modal.style.display = "none";
+            gameRunning = false;
+            if (gameLoopId) {
+                cancelAnimationFrame(gameLoopId);
+                gameLoopId = null;
+            }
+        }
+
+        function resetGame() {
+            paddle.x = 350;
+            ball.x = 400;
+            ball.y = 250;
+            ball.dx = 4 * (Math.random() > 0.5 ? 1 : -1);
+            ball.dy = -4;
+            gameRunning = true;
+        }
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightPressed = true;
+            if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftPressed = true;
+            if (e.code === "Space" && document.getElementById("gameModal").style.display === "flex") {
+                resetGame();
+            }
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightPressed = false;
+            if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftPressed = false;
+        });
+
+        function gameLoop() {
+            const canvas = document.getElementById("gameCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "#05070f";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Mover la paleta
+            if (rightPressed && paddle.x < canvas.width - paddle.w) paddle.x += paddle.dx;
+            if (leftPressed && paddle.x > 0) paddle.x -= paddle.dx;
+
+            if (gameRunning) {
+                // Mover bola
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+
+                // Colisión con paredes
+                if (ball.x + ball.r > canvas.width || ball.x - ball.r < 0) ball.dx = -ball.dx;
+                if (ball.y - ball.r < 0) ball.dy = -ball.dy;
+
+                // Colisión con la pala
+                if (
+                    ball.y + ball.r >= paddle.y &&
+                    ball.x >= paddle.x &&
+                    ball.x <= paddle.x + paddle.w
+                ) {
+                    ball.dy = -Math.abs(ball.dy);
+                    playAudio('type');
+                }
+
+                // Pérdida
+                if (ball.y + ball.r > canvas.height) {
+                    gameRunning = false;
+                    playAudio('error');
+                }
+            }
+
+            // Dibujar pala
+            ctx.fillStyle = "#00f0ff";
+            ctx.shadowColor = "#00f0ff";
+            ctx.shadowBlur = 12;
+            ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+
+            // Dibujar bola
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = "#ff0055";
+            ctx.shadowColor = "#ff0055";
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.closePath();
+            ctx.shadowBlur = 0;
+
+            if (!gameRunning) {
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 20px monospace";
+                ctx.textAlign = "center";
+                ctx.fillText("PREMI SPAZIO PER GIOCARE", canvas.width / 2, canvas.height / 2);
+            }
+
+            gameLoopId = requestAnimationFrame(gameLoop);
         }
     </script>
 </body>
@@ -780,7 +962,7 @@ def home():
         portada=PORTADA_DEADPOOL
     )
 
-# Proxy de streaming en Flask con soporte de Range Requests
+# Proxy de streaming con soporte para Range Requests
 @app.route('/stream-video')
 def stream_video():
     range_header = request.headers.get('Range', None)
