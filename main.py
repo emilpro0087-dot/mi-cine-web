@@ -1,29 +1,28 @@
 import os
-from flask import Flask, render_template_string
+import requests
+from flask import Flask, render_template_string, Response, request
 
 app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Video directo de prueba garantizado para verificar la reproducción y subtítulos
-# (Cuando tengas el nuevo enlace funcional de Deadpool, solo reemplázalo aquí)
-VIDEO_URL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+# ENLACE DIRECTO REAL: Cambia el nombre final si en "MPEG4" de Archive.org tiene otro nombre exacto
+VIDEO_URL_ORIGINAL = "https://archive.org/download/deadpool-and-wolverine_202611/miproyecto_1.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
-# Subtítulos en italiano (aquí puedes colocar tu archivo VTT o SRT completo)
 SUBTITULOS_VTT_BASE = """WEBVTT
 
 1
-00:00:02.000 --> 00:00:07.000
+00:00:08.000 --> 00:00:13.000
 Ciao a tutti, bentornati.
 
 2
-00:00:08.000 --> 00:00:13.000
+00:00:19.000 --> 00:00:23.000
 Credevate davvero che sarei rimasto tranquillo a casa?
 
 3
-00:00:14.000 --> 00:00:20.000
+00:00:24.000 --> 00:00:28.000
 Non finché il multiverso è in pericolo.
 """
 
@@ -448,21 +447,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             height: 15px;
         }
 
-        #videoErrorNotice {
-            display: none;
-            position: absolute;
-            inset: 0;
-            background: rgba(10, 10, 15, 0.95);
-            color: #ff4d5a;
-            font-family: monospace;
-            font-size: 14px;
-            padding: 30px;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            z-index: 20;
-        }
-
         video {
             width: 100%;
             display: block;
@@ -532,7 +516,8 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <p class="sub-description">Catalogo selezionato • Streaming Ultra HD</p>
             </div>
 
-            <div class="movie-card" onclick="playAudio('open'); reproducir('{{ url_video }}')">
+            <!-- El reproductor ahora llama al endpoint interno /stream-video -->
+            <div class="movie-card" onclick="playAudio('open'); reproducir('/stream-video')">
                 <img src="{{ portada }}" alt="Deadpool & Wolverine">
                 <div class="info">
                     <h3>Deadpool & Wolverine</h3>
@@ -556,10 +541,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             </div>
 
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
-
-            <div id="videoErrorNotice">
-                ⚠️ Impossibile caricare il flusso video.<br>Il link sorgente è offline o non consente lo streaming diretto.
-            </div>
 
             <video id="player" controls playsinline></video>
         </div>
@@ -706,6 +687,10 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         function cargarSubtitulosEnPlayer(player) {
+            while (player.firstChild) {
+                player.removeChild(player.firstChild);
+            }
+
             const rawText = document.getElementById("embeddedSubtitles").textContent;
             const track = player.addTextTrack("subtitles", "Italiano (Solo Voce)", "it");
             track.mode = document.getElementById("toggleAutoSub").checked ? "showing" : "disabled";
@@ -756,19 +741,13 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         }
 
-        function reproducir(videoUrl) {
+        function reproducir(videoEndpoint) {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
-            const errorNotice = document.getElementById("videoErrorNotice");
 
-            errorNotice.style.display = "none";
             modal.style.display = "flex";
-
-            player.onerror = () => {
-                errorNotice.style.display = "flex";
-            };
-
-            player.src = videoUrl;
+            player.src = videoEndpoint;
+            
             cargarSubtitulosEnPlayer(player);
 
             const playPromise = player.play();
@@ -782,9 +761,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         function cerrarVideo() {
             const modal = document.getElementById("videoModal");
             const player = document.getElementById("player");
-            const errorNotice = document.getElementById("videoErrorNotice");
 
-            errorNotice.style.display = "none";
             modal.style.display = "none";
             player.pause();
             player.removeAttribute("src");
@@ -799,10 +776,39 @@ def home():
     return render_template_string(
         PAGINA_WEB, 
         clave=CONTRASEÑA_CORRECTA, 
-        url_video=VIDEO_URL,
         subtitulos_raw=SUBTITULOS_VTT_BASE,
         portada=PORTADA_DEADPOOL
     )
+
+# Proxy de streaming en Flask con soporte de Range Requests
+@app.route('/stream-video')
+def stream_video():
+    range_header = request.headers.get('Range', None)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    if range_header:
+        headers['Range'] = range_header
+
+    try:
+        req = requests.get(VIDEO_URL_ORIGINAL, headers=headers, stream=True, timeout=15)
+        response_headers = {
+            'Content-Type': req.headers.get('Content-Type', 'video/mp4'),
+            'Accept-Ranges': 'bytes'
+        }
+        if 'Content-Range' in req.headers:
+            response_headers['Content-Range'] = req.headers['Content-Range']
+        if 'Content-Length' in req.headers:
+            response_headers['Content-Length'] = req.headers['Content-Length']
+
+        def generate():
+            for chunk in req.iter_content(chunk_size=1024 * 128):
+                if chunk:
+                    yield chunk
+
+        return Response(generate(), status=req.status_code, headers=response_headers)
+    except Exception as e:
+        return Response(f"Error cargando video: {str(e)}", status=502)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
