@@ -5,12 +5,12 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Link diretto del video
+# Enlace directo del video
 VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
-# Sottotitoli base in Italiano (solo dialoghi / parlato)
+# Subtítulos en italiano (aquí puedes pegar tu archivo VTT o SRT completo con todas las líneas de la película)
 SUBTITULOS_VTT_BASE = """WEBVTT
 
 1
@@ -374,11 +374,11 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #fff;
         }
 
-        /* Stile visivo dei sottotitoli nel player */
+        /* Formato y posición de subtítulos en pantalla */
         ::cue {
             background-color: rgba(0, 0, 0, 0.85);
             color: #ffd700;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
             text-shadow: 2px 2px 4px #000;
         }
@@ -459,4 +459,342 @@ PAGINA_WEB = """<!DOCTYPE html>
         @keyframes seismicShake {
             0% { transform: translate(0, 0) rotate(0deg); }
             15% { transform: translate(-6px, 4px) rotate(-1deg); }
-            30% { transform: translate(6px, -4px) rotate(
+            30% { transform: translate(6px, -4px) rotate(1.2deg); }
+            45% { transform: translate(-5px, -3px) rotate(-1deg); }
+            60% { transform: translate(5px, 3px) rotate(0.8deg); }
+            75% { transform: translate(-3px, 1px) rotate(-0.5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .screen-shake { animation: seismicShake 0.45s ease-in-out forwards; }
+        .slide-down-exit {
+            transition: transform 0.85s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.85s ease !important;
+            transform: translateY(120vh) !important;
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loaderOverlay">
+        <div class="door-frame">
+            <div class="door-graphics"></div>
+            <div class="loader-title">ACCESSO CASSETTA DI SICUREZZA</div>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div id="statusLabel" class="status-text">Avvio protocollo porte... (0%)</div>
+        </div>
+    </div>
+
+    <div id="loginScreen">
+        <div class="movie-backdrop"></div>
+        <div class="login-card" id="loginCard">
+            <h2>ACCESSO PRIVATO</h2>
+            <p>Inserisci la chiave per accedere al cinema personale</p>
+            
+            <div class="input-group">
+                <input type="password" id="passInput" placeholder="••••••••" autocomplete="off" oninput="playAudio('type')">
+            </div>
+
+            <button class="btn-submit" onclick="validarAcceso()">ENTRA NEL CINEMA</button>
+            <div id="errorLabel" class="error-label"></div>
+        </div>
+    </div>
+
+    <div id="catalogSection">
+        <div class="netflix-wall-bg"></div>
+
+        <div class="catalog-content">
+            <div class="elaborate-header">
+                <div class="meta-tagline">
+                    <span></span> SERVER PRIVATO ESCLUSIVO
+                </div>
+                <h1 class="cinema-title">CINEMA <em>PRIVATO</em></h1>
+                <div class="title-divider"></div>
+                <p class="sub-description">Catalogo selezionato • Streaming Ultra HD</p>
+            </div>
+
+            <div class="movie-card" onclick="playAudio('open'); reproducir('{{ url_video }}')">
+                <img src="{{ portada }}" alt="Deadpool & Wolverine">
+                <div class="info">
+                    <h3>Deadpool & Wolverine</h3>
+                    <div class="badges">
+                        <span class="badge-pill">4K ULTRA HD</span>
+                        <span class="badge-pill">SUB (SOLO VOCE)</span>
+                        <span>Azione • Commedia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="videoModal" class="modal">
+        <div class="modal-box">
+            <div class="subtitle-controls">
+                <label>
+                    <input type="checkbox" id="toggleAutoSub" checked onchange="toggleSubtitles(this.checked)">
+                    Sottotitoli (Solo Voce)
+                </label>
+            </div>
+
+            <span class="modal-close" onclick="cerrarVideo()">&times;</span>
+
+            <video id="player" controls playsinline crossorigin="anonymous"></video>
+        </div>
+    </div>
+
+    <!-- Contenedor con la pista de texto original -->
+    <script id="embeddedSubtitles" type="text/vtt">{{ subtitulos_raw | safe }}</script>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAudio(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'type') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1400, now + 0.04);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
+
+            } else if (type === 'success') {
+                [330, 440, 660, 880].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.09));
+                    gain.gain.setValueAtTime(0.12, now + (idx * 0.09));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.09) + 0.22);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (idx * 0.09));
+                    osc.stop(now + (idx * 0.09) + 0.22);
+                });
+
+            } else if (type === 'error') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.28);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.28);
+
+            } else if (type === 'open') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.6);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const bar = document.getElementById("progressBar");
+            const label = document.getElementById("statusLabel");
+            const loader = document.getElementById("loaderOverlay");
+            const login = document.getElementById("loginScreen");
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 7) + 3;
+                if (progress > 100) progress = 100;
+
+                bar.style.width = progress + "%";
+                label.innerText = `Sincronizzazione in corso... (${progress}%)`;
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loader.style.opacity = "0";
+                        setTimeout(() => {
+                            loader.style.visibility = "hidden";
+                            login.style.visibility = "visible";
+                            login.style.opacity = "1";
+                            document.getElementById("passInput").focus();
+                        }, 500);
+                    }, 400);
+                }
+            }, 60);
+        });
+
+        function validarAcceso() {
+            const input = document.getElementById("passInput");
+            const error = document.getElementById("errorLabel");
+            const loginScreen = document.getElementById("loginScreen");
+
+            if (input.value === "{{ clave }}") {
+                error.innerText = "";
+                playAudio('success');
+                loginScreen.classList.add("screen-shake");
+                
+                setTimeout(() => {
+                    loginScreen.classList.remove("screen-shake");
+                    loginScreen.classList.add("slide-down-exit");
+                }, 460);
+            } else {
+                playAudio('error');
+                error.innerText = "Password errata. Accesso non autorizzato.";
+                input.value = "";
+                const card = document.getElementById("loginCard");
+                card.style.transform = "translateX(-8px)";
+                setTimeout(() => { card.style.transform = "translateX(8px)"; }, 80);
+                setTimeout(() => { card.style.transform = "translateX(-4px)"; }, 160);
+                setTimeout(() => { card.style.transform = "translateX(0)"; }, 240);
+            }
+        }
+
+        document.getElementById("passInput").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") validarAcceso();
+        });
+
+        // FILTRO: extrae solo diálogos parlados, descartando notas musicales y sonidos descriptivos
+        function limpiarVozVTT(vttTexto) {
+            // Normalizar saltos de línea
+            const normalizado = vttTexto.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n');
+            const bloques = normalizado.split('\\n\\n');
+            const resultado = [];
+
+            for (const bloque of bloques) {
+                const lineas = bloque.trim().split('\\n');
+                if (!lineas || lineas.length === 0 || !lineas[0]) continue;
+
+                if (lineas[0].startsWith("WEBVTT")) {
+                    resultado.push(lineas.join('\\n'));
+                    continue;
+                }
+
+                const timingIndex = lineas.findIndex(l => l.includes("-->"));
+                if (timingIndex === -1) continue;
+
+                const lineasTexto = lineas.slice(timingIndex + 1);
+                const lineasLimpiaz = [];
+
+                for (let texto of lineasTexto) {
+                    // Eliminar símbolos y notas musicales
+                    texto = texto.replace(/[♪♫#♬♩]/g, "");
+                    // Eliminar efectos descriptivos entre corchetes o paréntesis: [Musica], (Gemito)
+                    texto = texto.replace(/\\[.*?\\]/g, "");
+                    texto = texto.replace(/\\(.*?\\)/g, "");
+                    texto = texto.trim();
+
+                    if (texto.length > 0) {
+                        lineasLimpiaz.push(texto);
+                    }
+                }
+
+                // Guardar bloque únicamente si contiene voces reales
+                if (lineasLimpiaz.length > 0) {
+                    const cabecera = lineas.slice(0, timingIndex + 1);
+                    resultado.push([...cabecera, ...lineasLimpiaz].join('\\n'));
+                }
+            }
+
+            return resultado.join('\\n\\n');
+        }
+
+        function toggleSubtitles(activar) {
+            const player = document.getElementById("player");
+            if (player.textTracks && player.textTracks.length > 0) {
+                for (let i = 0; i < player.textTracks.length; i++) {
+                    player.textTracks[i].mode = activar ? "showing" : "disabled";
+                }
+            }
+        }
+
+        function reproducir(videoUrl) {
+            const modal = document.getElementById("videoModal");
+            const player = document.getElementById("player");
+            const toggle = document.getElementById("toggleAutoSub");
+
+            // Limpiar tracks anteriores para forzar a Chrome a recargar la nueva pista limpia
+            while (player.firstChild) {
+                player.removeChild(player.firstChild);
+            }
+
+            const vttOriginal = document.getElementById("embeddedSubtitles").textContent;
+            const vttFiltrado = limpiarVozVTT(vttOriginal);
+
+            const blob = new Blob([vttFiltrado], { type: "text/vtt;charset=utf-8" });
+            const trackUrl = URL.createObjectURL(blob);
+
+            const track = document.createElement("track");
+            track.id = "videoTrack";
+            track.kind = "subtitles";
+            track.srclang = "it";
+            track.label = "Italiano (Solo Voce)";
+            track.src = trackUrl;
+            track.default = true;
+
+            player.appendChild(track);
+            player.src = videoUrl;
+            modal.style.display = "flex";
+            player.load();
+
+            player.onloadedmetadata = function() {
+                if (player.textTracks && player.textTracks.length > 0) {
+                    player.textTracks[0].mode = toggle.checked ? "showing" : "disabled";
+                }
+            };
+
+            const playPromise = player.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.warn("Reproducción diferida por política de navegador:", err);
+                });
+            }
+        }
+
+        function cerrarVideo() {
+            const modal = document.getElementById("videoModal");
+            const player = document.getElementById("player");
+
+            modal.style.display = "none";
+            player.pause();
+            player.removeAttribute("src");
+            while (player.firstChild) {
+                player.removeChild(player.firstChild);
+            }
+            player.load();
+        }
+    </script>
+</body>
+</html>"""
+
+@app.route('/')
+def home():
+    return render_template_string(
+        PAGINA_WEB, 
+        clave=CONTRASEÑA_CORRECTA, 
+        url_video=VIDEO_URL,
+        subtitulos_raw=SUBTITULOS_VTT_BASE,
+        portada=PORTADA_DEADPOOL
+    )
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
