@@ -5,24 +5,25 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Enlace directo del video
-VIDEO_URL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
+# Video directo de prueba garantizado para verificar la reproducción y subtítulos
+# (Cuando tengas el nuevo enlace funcional de Deadpool, solo reemplázalo aquí)
+VIDEO_URL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
-# Subtítulos en italiano (aquí puedes colocar tu texto VTT/SRT completo sincronizado)
+# Subtítulos en italiano (aquí puedes colocar tu archivo VTT o SRT completo)
 SUBTITULOS_VTT_BASE = """WEBVTT
 
 1
-00:00:08.000 --> 00:00:13.000
+00:00:02.000 --> 00:00:07.000
 Ciao a tutti, bentornati.
 
 2
-00:00:19.000 --> 00:00:23.000
+00:00:08.000 --> 00:00:13.000
 Credevate davvero che sarei rimasto tranquillo a casa?
 
 3
-00:00:24.000 --> 00:00:28.000
+00:00:14.000 --> 00:00:20.000
 Non finché il multiverso è in pericolo.
 """
 
@@ -374,7 +375,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             color: #fff;
         }
 
-        /* Subtítulos personalizados nativos */
         ::cue {
             background-color: rgba(0, 0, 0, 0.85);
             color: #ffd700;
@@ -413,14 +413,14 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-size: 34px;
             font-weight: bold;
             cursor: pointer;
-            z-index: 20;
+            z-index: 25;
         }
 
         .subtitle-controls {
             position: absolute;
             top: 12px;
             left: 20px;
-            z-index: 20;
+            z-index: 25;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -446,6 +446,21 @@ PAGINA_WEB = """<!DOCTYPE html>
             cursor: pointer;
             width: 15px;
             height: 15px;
+        }
+
+        #videoErrorNotice {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.95);
+            color: #ff4d5a;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 30px;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 20;
         }
 
         video {
@@ -542,7 +557,10 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             <span class="modal-close" onclick="cerrarVideo()">&times;</span>
 
-            <!-- Sin crossorigin para permitir que Archive.org cargue sin bloqueo -->
+            <div id="videoErrorNotice">
+                ⚠️ Impossibile caricare il flusso video.<br>Il link sorgente è offline o non consente lo streaming diretto.
+            </div>
+
             <video id="player" controls playsinline></video>
         </div>
     </div>
@@ -666,3 +684,126 @@ PAGINA_WEB = """<!DOCTYPE html>
                 setTimeout(() => { card.style.transform = "translateX(8px)"; }, 80);
                 setTimeout(() => { card.style.transform = "translateX(-4px)"; }, 160);
                 setTimeout(() => { card.style.transform = "translateX(0)"; }, 240);
+            }
+        }
+
+        document.getElementById("passInput").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") validarAcceso();
+        });
+
+        function parseVttTime(timeString) {
+            const parts = timeString.trim().split(':');
+            let h = 0, m = 0, s = 0;
+            if (parts.length === 3) {
+                h = parseFloat(parts[0]);
+                m = parseFloat(parts[1]);
+                s = parseFloat(parts[2].replace(',', '.'));
+            } else if (parts.length === 2) {
+                m = parseFloat(parts[0]);
+                s = parseFloat(parts[1].replace(',', '.'));
+            }
+            return (h * 3600) + (m * 60) + s;
+        }
+
+        function cargarSubtitulosEnPlayer(player) {
+            const rawText = document.getElementById("embeddedSubtitles").textContent;
+            const track = player.addTextTrack("subtitles", "Italiano (Solo Voce)", "it");
+            track.mode = document.getElementById("toggleAutoSub").checked ? "showing" : "disabled";
+
+            const bloques = rawText.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n\\n');
+
+            for (const bloque of bloques) {
+                const lineas = bloque.trim().split('\\n');
+                if (!lineas || lineas.length === 0) continue;
+
+                const timingIndex = lineas.findIndex(l => l.includes("-->"));
+                if (timingIndex === -1) continue;
+
+                const [startStr, endStr] = lineas[timingIndex].split("-->");
+                const startTime = parseVttTime(startStr);
+                const endTime = parseVttTime(endStr);
+
+                const textoLineas = lineas.slice(timingIndex + 1);
+                const dialogos = [];
+
+                for (let txt of textoLineas) {
+                    txt = txt.replace(/[♪♫#♬♩]/g, "");
+                    txt = txt.replace(/\\[.*?\\]/g, "");
+                    txt = txt.replace(/\\(.*?\\)/g, "");
+                    txt = txt.trim();
+
+                    if (txt.length > 0) {
+                        dialogos.push(txt);
+                    }
+                }
+
+                if (dialogos.length > 0 && !isNaN(startTime) && !isNaN(endTime)) {
+                    try {
+                        track.addCue(new VTTCue(startTime, endTime, dialogos.join('\\n')));
+                    } catch (e) {
+                        console.warn("Cue warning:", e);
+                    }
+                }
+            }
+        }
+
+        function toggleSubtitles(activar) {
+            const player = document.getElementById("player");
+            if (player.textTracks && player.textTracks.length > 0) {
+                for (let i = 0; i < player.textTracks.length; i++) {
+                    player.textTracks[i].mode = activar ? "showing" : "disabled";
+                }
+            }
+        }
+
+        function reproducir(videoUrl) {
+            const modal = document.getElementById("videoModal");
+            const player = document.getElementById("player");
+            const errorNotice = document.getElementById("videoErrorNotice");
+
+            errorNotice.style.display = "none";
+            modal.style.display = "flex";
+
+            player.onerror = () => {
+                errorNotice.style.display = "flex";
+            };
+
+            player.src = videoUrl;
+            cargarSubtitulosEnPlayer(player);
+
+            const playPromise = player.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.warn("Esperando interacción de usuario:", err);
+                });
+            }
+        }
+
+        function cerrarVideo() {
+            const modal = document.getElementById("videoModal");
+            const player = document.getElementById("player");
+            const errorNotice = document.getElementById("videoErrorNotice");
+
+            errorNotice.style.display = "none";
+            modal.style.display = "none";
+            player.pause();
+            player.removeAttribute("src");
+            player.load();
+        }
+    </script>
+</body>
+</html>"""
+
+@app.route('/')
+def home():
+    return render_template_string(
+        PAGINA_WEB, 
+        clave=CONTRASEÑA_CORRECTA, 
+        url_video=VIDEO_URL,
+        subtitulos_raw=SUBTITULOS_VTT_BASE,
+        portada=PORTADA_DEADPOOL
+    )
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
