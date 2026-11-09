@@ -43,7 +43,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             overflow-x: hidden;
         }
 
-        /* Insignia de versión en la esquina superior izquierda */
+        /* Insignia fija v0.0 en la esquina superior izquierda */
         .version-badge {
             position: fixed;
             top: 14px;
@@ -528,7 +528,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 </head>
 <body>
 
-    <!-- Insignia fija v0.0 en la esquina superior izquierda -->
+    <!-- Versión fija en la esquina superior izquierda -->
     <div class="version-badge">v0.0</div>
 
     <div id="loaderOverlay">
@@ -584,7 +584,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Apartado de JUEGO WEB -->
+                <!-- Tarjeta 2: Apartado de JUEGO WEB CANVAS -->
                 <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego()">
                     <div style="height: 390px; background: radial-gradient(circle, #0e1e38 0%, #060911 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
                         <span style="font-size: 80px; filter: drop-shadow(0 0 20px #00f0ff);">🎮</span>
@@ -772,7 +772,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             return (h * 3600) + (m * 60) + s;
         }
 
-        // Limpieza de subtítulos: SOLO VOZ HABLADA
+        // LIMPIEZA ESTRICTA: SOLO VOZ HABLADA
         function cargarSubtitulosEnPlayer(player) {
             while (player.firstChild) {
                 player.removeChild(player.firstChild);
@@ -841,7 +841,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             const playPromise = player.play();
             if (playPromise !== undefined) {
                 playPromise.catch(err => {
-                    console.warn("Interazione utente richiesta dal browser:", err);
+                    console.warn("Interazione richiesta dal browser:", err);
                 });
             }
         }
@@ -856,7 +856,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             player.load();
         }
 
-        // Lógica del Videojuego Web Canvas
+        // LÓGICA DEL MINI-JUEGO WEB EN CANVAS
         let gameLoopId = null;
         let paddle = { x: 350, y: 410, w: 100, h: 14, dx: 7 };
         let ball = { x: 400, y: 200, r: 8, dx: 4, dy: -4 };
