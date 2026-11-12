@@ -6,8 +6,8 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Enlace al archivo de video (reemplaza si es necesario con el enlace directo .mp4 de Archive.org)
-VIDEO_URL_ORIGINAL = "https://archive.org/download/deadpool-and-wolverine_202611/miproyecto_1.mp4"
+# Enlace directo corregido al archivo .mp4 en Archive.org
+VIDEO_URL_ORIGINAL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
 
@@ -31,8 +31,10 @@ PAGINA_WEB = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinema Privato // Cinema & Arcade Vault</title>
+    <title>Cinema Privato // Cinema & Doors 3D</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
+    <!-- Librería Three.js para el motor 3D en el navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -49,8 +51,8 @@ PAGINA_WEB = """<!DOCTYPE html>
             top: 14px;
             left: 14px;
             z-index: 9999;
-            background: rgba(10, 16, 26, 0.85);
-            border: 1px solid rgba(0, 240, 255, 0.4);
+            background: rgba(10, 16, 26, 0.88);
+            border: 1px solid rgba(0, 240, 255, 0.45);
             border-radius: 6px;
             padding: 5px 12px;
             font-family: monospace;
@@ -58,7 +60,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-weight: 700;
             letter-spacing: 1.5px;
             color: #00f0ff;
-            box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
             backdrop-filter: blur(8px);
             user-select: none;
             pointer-events: none;
@@ -369,8 +371,8 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         .movie-card.game-card:hover {
-            border-color: #00f0ff;
-            box-shadow: 0 20px 45px rgba(0, 240, 255, 0.5);
+            border-color: #ff9900;
+            box-shadow: 0 20px 45px rgba(255, 153, 0, 0.45);
         }
 
         .movie-card img {
@@ -421,10 +423,10 @@ PAGINA_WEB = """<!DOCTYPE html>
             position: fixed;
             inset: 0;
             z-index: 6000;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.96);
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
 
         .modal-box {
@@ -446,7 +448,8 @@ PAGINA_WEB = """<!DOCTYPE html>
             font-size: 34px;
             font-weight: bold;
             cursor: pointer;
-            z-index: 25;
+            z-index: 50;
+            text-shadow: 0 0 8px #000;
         }
 
         .subtitle-controls {
@@ -488,19 +491,98 @@ PAGINA_WEB = """<!DOCTYPE html>
             background: #000;
         }
 
-        #gameCanvas {
-            background: #05070f;
-            display: block;
-            margin: 0 auto;
-            border-radius: 8px;
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+        /* Estilos del Juego 3D Doors en 1ª Persona */
+        #doors3DContainer {
+            position: relative;
+            width: 100%;
+            height: 540px;
+            background: #030305;
+            cursor: crosshair;
+            overflow: hidden;
+        }
+
+        #doorsHUD {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 20;
+            font-family: monospace;
+        }
+
+        .doors-room-counter {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid #ff9900;
+            color: #ffbb33;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .doors-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 6px #fff;
+        }
+
+        .doors-prompt {
+            position: absolute;
+            top: 56%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffbb33;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        #doorsStartOverlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 5, 8, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            cursor: pointer;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #doorsStartOverlay h2 {
+            font-family: monospace;
+            font-size: 28px;
+            letter-spacing: 4px;
+            color: #ff9900;
+            margin-bottom: 12px;
+            text-shadow: 0 0 15px rgba(255, 153, 0, 0.6);
+        }
+
+        #doorsStartOverlay p {
+            color: #ccc;
+            font-size: 14px;
+            max-width: 440px;
+            line-height: 1.5;
         }
 
         .game-controls-bar {
             text-align: center;
             padding: 12px;
             background: #0d111a;
-            color: #00f0ff;
+            color: #ffbb33;
             font-family: monospace;
             font-size: 13px;
         }
@@ -565,9 +647,9 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <div class="meta-tagline">
                     <span></span> SERVER PRIVATO ESCLUSIVO
                 </div>
-                <h1 class="cinema-title">CINEMA & <em>ARCADE</em></h1>
+                <h1 class="cinema-title">CINEMA & <em>DOORS 3D</em></h1>
                 <div class="title-divider"></div>
-                <p class="sub-description">Catalogo selezionato • Streaming Ultra HD & Giochi Web</p>
+                <p class="sub-description">Catalogo selezionato • Streaming Ultra HD & Horror 3D</p>
             </div>
 
             <div class="catalog-grid">
@@ -584,18 +666,18 @@ PAGINA_WEB = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Apartado de JUEGO WEB CANVAS -->
-                <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego()">
-                    <div style="height: 390px; background: radial-gradient(circle, #0e1e38 0%, #060911 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
-                        <span style="font-size: 80px; filter: drop-shadow(0 0 20px #00f0ff);">🎮</span>
-                        <span style="font-family: monospace; font-size: 13px; letter-spacing: 3px; color: #00f0ff;">ZONA ARCADE</span>
+                <!-- Tarjeta 2: Apartado de JUEGO 3D TERROR (DOORS 1ª PERSONA) -->
+                <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego3D()">
+                    <div style="height: 390px; background: radial-gradient(circle, #2a1808 0%, #050507 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                        <span style="font-size: 80px; filter: drop-shadow(0 0 20px #ff9900);">🚪</span>
+                        <span style="font-family: monospace; font-size: 13px; letter-spacing: 3px; color: #ffbb33;">HORROR 3D • 1ª PERSONA</span>
                     </div>
                     <div class="info">
-                        <h3>SEZIONE GIOCO</h3>
+                        <h3>JUEGO: DOORS 3D</h3>
                         <div class="badges">
-                            <span class="badge-pill" style="border-color: #00f0ff; color: #00f0ff;">WEB CANVAS</span>
-                            <span class="badge-pill">INTERATTIVO</span>
-                            <span>Arcade 2D</span>
+                            <span class="badge-pill" style="border-color: #ff9900; color: #ffbb33;">3D FIRST PERSON</span>
+                            <span class="badge-pill">TERROR</span>
+                            <span>Linterna & Puertas</span>
                         </div>
                     </div>
                 </div>
@@ -619,15 +701,24 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Modal del Juego Web Canvas -->
+    <!-- Modal del Juego 3D Terror (Doors 1ª Persona) -->
     <div id="gameModal" class="modal">
-        <div class="modal-box" style="border-color: #00f0ff; max-width: 840px;">
-            <span class="modal-close" onclick="cerrarJuego()">&times;</span>
-            <div style="padding: 15px; text-align: center;">
-                <canvas id="gameCanvas" width="800" height="450"></canvas>
+        <div class="modal-box" style="border-color: #ff9900; max-width: 920px;">
+            <span class="modal-close" onclick="cerrarJuego3D()">&times;</span>
+            <div id="doors3DContainer">
+                <div id="doorsHUD">
+                    <div class="doors-room-counter" id="roomCounter">PUERTA 0001</div>
+                    <div class="doors-crosshair"></div>
+                    <div class="doors-prompt" id="doorPrompt">[CLIC] ABRIR PUERTA</div>
+                </div>
+                <div id="doorsStartOverlay" onclick="bloquearRatonDoors()">
+                    <h2>DOORS 3D // 1ª PERSONA</h2>
+                    <p>Haz clic aquí para entrar en primera persona.<br><br>
+                    Explora los pasillos oscuros y abre las puertas numeradas.</p>
+                </div>
             </div>
             <div class="game-controls-bar">
-                Usa [FRECCE ← →] o [A / D] per muovere la navetta • SPAZIO per iniziare/ricominciare
+                [W A S D] Caminar • [RATÓN] Mirar en 1ª Persona • [F] Linterna • [CLIC] Abrir Puerta • [ESC] Liberar Ratón
             </div>
         </div>
     </div>
@@ -696,6 +787,18 @@ PAGINA_WEB = """<!DOCTYPE html>
                 gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.6);
+            } else if (type === 'door_creak') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(95, now);
+                osc.frequency.linearRampToValueAtTime(62, now + 0.55);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.55);
             }
         }
 
@@ -772,7 +875,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             return (h * 3600) + (m * 60) + s;
         }
 
-        // LIMPIEZA ESTRICTA: SOLO VOZ HABLADA
+        // LIMPIEZA ESTRICTA DE SUBTÍTULOS: SOLO VOZ
         function cargarSubtitulosEnPlayer(player) {
             while (player.firstChild) {
                 player.removeChild(player.firstChild);
@@ -856,110 +959,300 @@ PAGINA_WEB = """<!DOCTYPE html>
             player.load();
         }
 
-        // LÓGICA DEL MINI-JUEGO WEB EN CANVAS
-        let gameLoopId = null;
-        let paddle = { x: 350, y: 410, w: 100, h: 14, dx: 7 };
-        let ball = { x: 400, y: 200, r: 8, dx: 4, dy: -4 };
-        let rightPressed = false;
-        let leftPressed = false;
-        let gameRunning = false;
+        // ============================================================
+        // MOTOR 3D EN PRIMERA PERSONA ESTILO "DOORS" (THREE.JS)
+        // ============================================================
+        let scene3D, camera3D, renderer3D, flashlight, animFrame3D;
+        let doorsActive = false;
+        let currentRoomNum = 1;
+        let activeDoorPivot = null;
+        let activeDoorOpen = false;
+        let roomZOffset = 0;
 
-        function abrirJuego() {
+        // Controles de primera persona
+        let yaw = 0;
+        let pitch = 0;
+        const moveKeys = { w: false, a: false, s: false, d: false };
+        let flashlightOn = true;
+
+        function crearTexturaPlaca(numero) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#2b1d0e';
+            ctx.fillRect(0, 0, 256, 128);
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(8, 8, 240, 112);
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 54px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(numero).padStart(4, '0'), 128, 66);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function construirHabitacionDoors(numHabitacion, zStart) {
+            const largo = 16;
+            const ancho = 6;
+            const alto = 4;
+
+            const matPared = new THREE.MeshStandardMaterial({ color: 0x2a1a14, roughness: 0.85 });
+            const matSuelo = new THREE.MeshStandardMaterial({ color: 0x1a120d, roughness: 0.9 });
+            const matTecho = new THREE.MeshStandardMaterial({ color: 0x120d0a, roughness: 0.95 });
+
+            // Suelo
+            const suelo = new THREE.Mesh(new THREE.BoxGeometry(ancho, 0.2, largo), matSuelo);
+            suelo.position.set(0, -0.1, zStart - largo / 2);
+            scene3D.add(suelo);
+
+            // Techo
+            const techo = new THREE.Mesh(new THREE.BoxGeometry(ancho, 0.2, largo), matTecho);
+            techo.position.set(0, alto + 0.1, zStart - largo / 2);
+            scene3D.add(techo);
+
+            // Paredes laterales
+            const paredIzq = new THREE.Mesh(new THREE.BoxGeometry(0.3, alto, largo), matPared);
+            paredIzq.position.set(-ancho / 2, alto / 2, zStart - largo / 2);
+            scene3D.add(paredIzq);
+
+            const paredDer = new THREE.Mesh(new THREE.BoxGeometry(0.3, alto, largo), matPared);
+            paredDer.position.set(ancho / 2, alto / 2, zStart - largo / 2);
+            scene3D.add(paredDer);
+
+            // Luz tenue de lámpara colgante en el pasillo
+            const lamparaLuz = new THREE.PointLight(0xffaa44, 0.55, 11);
+            lamparaLuz.position.set(0, alto - 0.5, zStart - largo / 2);
+            scene3D.add(lamparaLuz);
+
+            // Pared frontal con hueco para la puerta
+            const zPuerta = zStart - largo;
+            const matMarco = new THREE.MeshStandardMaterial({ color: 0x1c110a });
+
+            const muroIzqPuerta = new THREE.Mesh(new THREE.BoxGeometry(2.1, alto, 0.3), matPared);
+            muroIzqPuerta.position.set(-1.95, alto / 2, zPuerta);
+            scene3D.add(muroIzqPuerta);
+
+            const muroDerPuerta = new THREE.Mesh(new THREE.BoxGeometry(2.1, alto, 0.3), matPared);
+            muroDerPuerta.position.set(1.95, alto / 2, zPuerta);
+            scene3D.add(muroDerPuerta);
+
+            const dintel = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 0.3), matPared);
+            dintel.position.set(0, alto - 0.6, zPuerta);
+            scene3D.add(dintel);
+
+            // Pivote y Hoja de la Puerta
+            const pivot = new THREE.Group();
+            pivot.position.set(-0.85, 0, zPuerta);
+
+            const matPuerta = new THREE.MeshStandardMaterial({ color: 0x4a2511, roughness: 0.6 });
+            const hojaPuerta = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.8, 0.14), matPuerta);
+            hojaPuerta.position.set(0.85, 1.4, 0);
+            pivot.add(hojaPuerta);
+
+            // Placa numerada dorada
+            const placaMat = new THREE.MeshBasicMaterial({ map: crearTexturaPlaca(numHabitacion) });
+            const placa = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.32), placaMat);
+            placa.position.set(0.85, 2.15, 0.08);
+            pivot.add(placa);
+
+            // Pomo dorado
+            const pomo = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 })
+            );
+            pomo.position.set(1.48, 1.3, 0.1);
+            pivot.add(pomo);
+
+            scene3D.add(pivot);
+            activeDoorPivot = pivot;
+            activeDoorOpen = false;
+            roomZOffset = zPuerta;
+        }
+
+        function abrirJuego3D() {
             const modal = document.getElementById("gameModal");
+            const container = document.getElementById("doors3DContainer");
             modal.style.display = "flex";
-            resetGame();
-            if (!gameLoopId) {
-                gameLoop();
+            doorsActive = true;
+
+            // Reiniciar variables
+            currentRoomNum = 1;
+            document.getElementById("roomCounter").innerText = "PUERTA 0001";
+            document.getElementById("doorsStartOverlay").style.display = "flex";
+            yaw = 0;
+            pitch = 0;
+            flashlightOn = true;
+
+            // Limpiar render anterior si existía
+            const oldCanvas = container.querySelector("canvas");
+            if (oldCanvas) oldCanvas.remove();
+
+            scene3D = new THREE.Scene();
+            scene3D.background = new THREE.Color(0x030305);
+            scene3D.fog = new THREE.FogExp2(0x030305, 0.085);
+
+            camera3D = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 60);
+            camera3D.position.set(0, 1.65, -1.5); // Altura de los ojos en 1ª persona
+
+            renderer3D = new THREE.WebGLRenderer({ antialias: true });
+            renderer3D.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer3D.domElement);
+
+            // Luz ambiental mínima
+            const amb = new THREE.AmbientLight(0x222233, 0.35);
+            scene3D.add(amb);
+
+            // Linterna en Primera Persona ligada a la cámara
+            flashlight = new THREE.SpotLight(0xfff5e0, 2.4, 22, Math.PI / 5.5, 0.45, 1.2);
+            flashlight.position.set(0, 0, 0);
+            flashlight.target.position.set(0, 0, -1);
+            camera3D.add(flashlight);
+            camera3D.add(flashlight.target);
+            scene3D.add(camera3D);
+
+            construirHabitacionDoors(currentRoomNum, 0);
+
+            if (!animFrame3D) {
+                bucleDoors3D();
             }
         }
 
-        function cerrarJuego() {
-            const modal = document.getElementById("gameModal");
-            modal.style.display = "none";
-            gameRunning = false;
-            if (gameLoopId) {
-                cancelAnimationFrame(gameLoopId);
-                gameLoopId = null;
+        function cerrarJuego3D() {
+            doorsActive = false;
+            document.getElementById("gameModal").style.display = "none";
+            if (document.pointerLockElement) {
+                document.exitPointerLock();
+            }
+            if (animFrame3D) {
+                cancelAnimationFrame(animFrame3D);
+                animFrame3D = null;
             }
         }
 
-        function resetGame() {
-            paddle.x = 350;
-            ball.x = 400;
-            ball.y = 250;
-            ball.dx = 4 * (Math.random() > 0.5 ? 1 : -1);
-            ball.dy = -4;
-            gameRunning = true;
+        function bloquearRatonDoors() {
+            const container = document.getElementById("doors3DContainer");
+            if (container.requestPointerLock) {
+                container.requestPointerLock();
+            }
         }
+
+        document.addEventListener("pointerlockchange", () => {
+            const container = document.getElementById("doors3DContainer");
+            const overlay = document.getElementById("doorsStartOverlay");
+            if (document.pointerLockElement === container) {
+                overlay.style.display = "none";
+            } else if (doorsActive) {
+                overlay.style.display = "flex";
+            }
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            const container = document.getElementById("doors3DContainer");
+            if (document.pointerLockElement === container && doorsActive) {
+                yaw -= e.movementX * 0.0022;
+                pitch -= e.movementY * 0.0022;
+                pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+            }
+        });
+
+        document.addEventListener("mousedown", (e) => {
+            const container = document.getElementById("doors3DContainer");
+            if (document.pointerLockElement === container && doorsActive && e.button === 0) {
+                // Comprobar distancia a la puerta activa
+                if (activeDoorPivot && !activeDoorOpen) {
+                    const dist = Math.abs(camera3D.position.z - roomZOffset);
+                    if (dist < 3.6) {
+                        activeDoorOpen = true;
+                        playAudio('door_creak');
+                        currentRoomNum++;
+                        document.getElementById("roomCounter").innerText = "PUERTA " + String(currentRoomNum).padStart(4, '0');
+                        construirHabitacionDoors(currentRoomNum, roomZOffset);
+                    }
+                }
+            }
+        });
 
         window.addEventListener("keydown", (e) => {
-            if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightPressed = true;
-            if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftPressed = true;
-            if (e.code === "Space" && document.getElementById("gameModal").style.display === "flex") {
-                resetGame();
+            if (!doorsActive) return;
+            const k = e.key.toLowerCase();
+            if (k === 'w') moveKeys.w = true;
+            if (k === 'a') moveKeys.a = true;
+            if (k === 's') moveKeys.s = true;
+            if (k === 'd') moveKeys.d = true;
+            if (k === 'f' && flashlight) {
+                flashlightOn = !flashlightOn;
+                flashlight.intensity = flashlightOn ? 2.4 : 0;
+                playAudio('type');
             }
         });
 
         window.addEventListener("keyup", (e) => {
-            if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightPressed = false;
-            if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftPressed = false;
+            const k = e.key.toLowerCase();
+            if (k === 'w') moveKeys.w = false;
+            if (k === 'a') moveKeys.a = false;
+            if (k === 's') moveKeys.s = false;
+            if (k === 'd') moveKeys.d = false;
         });
 
-        function gameLoop() {
-            const canvas = document.getElementById("gameCanvas");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
+        function bucleDoors3D() {
+            if (!doorsActive) return;
 
-            ctx.fillStyle = "#05070f";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Rotación en 1ª persona (orden YXZ para mirada natural)
+            camera3D.rotation.order = 'YXZ';
+            camera3D.rotation.y = yaw;
+            camera3D.rotation.x = pitch;
 
-            if (rightPressed && paddle.x < canvas.width - paddle.w) paddle.x += paddle.dx;
-            if (leftPressed && paddle.x > 0) paddle.x -= paddle.dx;
+            // Movimiento horizontal en dirección de la mirada
+            const speed = 0.085;
+            const forwardX = -Math.sin(yaw);
+            const forwardZ = -Math.cos(yaw);
+            const rightX = Math.cos(yaw);
+            const rightZ = -Math.sin(yaw);
 
-            if (gameRunning) {
-                ball.x += ball.dx;
-                ball.y += ball.dy;
+            if (moveKeys.w) {
+                camera3D.position.x += forwardX * speed;
+                camera3D.position.z += forwardZ * speed;
+            }
+            if (moveKeys.s) {
+                camera3D.position.x -= forwardX * speed;
+                camera3D.position.z -= forwardZ * speed;
+            }
+            if (moveKeys.a) {
+                camera3D.position.x -= rightX * speed;
+                camera3D.position.z -= rightZ * speed;
+            }
+            if (moveKeys.d) {
+                camera3D.position.x += rightX * speed;
+                camera3D.position.z += rightZ * speed;
+            }
 
-                if (ball.x + ball.r > canvas.width || ball.x - ball.r < 0) ball.dx = -ball.dx;
-                if (ball.y - ball.r < 0) ball.dy = -ball.dy;
+            // Colisión lateral con paredes del pasillo
+            camera3D.position.x = Math.max(-2.3, Math.min(2.3, camera3D.position.x));
 
-                if (
-                    ball.y + ball.r >= paddle.y &&
-                    ball.x >= paddle.x &&
-                    ball.x <= paddle.x + paddle.w
-                ) {
-                    ball.dy = -Math.abs(ball.dy);
-                    playAudio('type');
-                }
-
-                if (ball.y + ball.r > canvas.height) {
-                    gameRunning = false;
-                    playAudio('error');
+            // Animación suave de apertura de puerta y aviso en pantalla
+            const promptEl = document.getElementById("doorPrompt");
+            if (activeDoorPivot) {
+                const dist = Math.abs(camera3D.position.z - roomZOffset);
+                if (!activeDoorOpen && dist < 3.6) {
+                    promptEl.style.display = "block";
+                } else {
+                    promptEl.style.display = "none";
                 }
             }
 
-            ctx.fillStyle = "#00f0ff";
-            ctx.shadowColor = "#00f0ff";
-            ctx.shadowBlur = 12;
-            ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+            // Rotar puertas abiertas suavemente
+            scene3D.traverse((obj) => {
+                if (obj.type === "Group" && obj !== activeDoorPivot) {
+                    if (obj.rotation.y > -Math.PI / 2.1) {
+                        obj.rotation.y -= 0.06;
+                    }
+                }
+            });
 
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-            ctx.fillStyle = "#ff0055";
-            ctx.shadowColor = "#ff0055";
-            ctx.shadowBlur = 15;
-            ctx.fill();
-            ctx.closePath();
-            ctx.shadowBlur = 0;
-
-            if (!gameRunning) {
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 20px monospace";
-                ctx.textAlign = "center";
-                ctx.fillText("PREMI SPAZIO PER GIOCARE", canvas.width / 2, canvas.height / 2);
-            }
-
-            gameLoopId = requestAnimationFrame(gameLoop);
+            renderer3D.render(scene3D, camera3D);
+            animFrame3D = requestAnimationFrame(bucleDoors3D);
         }
     </script>
 </body>
