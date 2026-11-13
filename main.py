@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
-# Enlace directo corregido al archivo .mp4 en Archive.org
+# Enlace directo al archivo .mp4 en Archive.org
 VIDEO_URL_ORIGINAL = "https://archive.org/download/deadpool-and-wolverine_202611/Deadpool_and_Wolverine.mp4"
 
 PORTADA_DEADPOOL = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
@@ -30,10 +30,9 @@ PAGINA_WEB = """<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cinema Privato // Cinema & Doors 3D</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
-    <!-- Librería Three.js para el motor 3D en el navegador -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -252,7 +251,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 50px 20px 80px;
+            padding: 55px 15px 80px;
             overflow: hidden;
         }
 
@@ -283,7 +282,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .elaborate-header {
             text-align: center;
-            margin-bottom: 45px;
+            margin-bottom: 40px;
         }
 
         .meta-tagline {
@@ -311,7 +310,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         .cinema-title {
-            font-size: clamp(34px, 5vw, 54px);
+            font-size: clamp(28px, 5vw, 54px);
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 4px;
@@ -347,17 +346,18 @@ PAGINA_WEB = """<!DOCTYPE html>
         .catalog-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 30px;
+            gap: 24px;
             justify-content: center;
             width: 100%;
         }
 
         .movie-card {
-            background: rgba(20, 22, 30, 0.75);
+            background: rgba(20, 22, 30, 0.78);
             backdrop-filter: blur(12px);
             border-radius: 14px;
             overflow: hidden;
             width: 270px;
+            max-width: 90vw;
             cursor: pointer;
             border: 1px solid rgba(255, 255, 255, 0.12);
             transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
@@ -365,7 +365,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         .movie-card:hover {
-            transform: translateY(-10px) scale(1.03);
+            transform: translateY(-8px) scale(1.02);
             border-color: #e50914;
             box-shadow: 0 20px 45px rgba(229, 9, 20, 0.5);
         }
@@ -377,7 +377,7 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .movie-card img {
             width: 100%;
-            height: 390px;
+            height: 380px;
             object-fit: cover;
             display: block;
         }
@@ -397,7 +397,8 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .movie-card .badges {
             display: flex;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
             font-size: 11px;
             font-weight: 600;
             color: #b3b3b3;
@@ -413,7 +414,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         ::cue {
             background-color: rgba(0, 0, 0, 0.85);
             color: #ffd700;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             text-shadow: 2px 2px 4px #000;
         }
@@ -426,7 +427,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             background: rgba(0, 0, 0, 0.96);
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 10px;
         }
 
         .modal-box {
@@ -442,20 +443,21 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .modal-close {
             position: absolute;
-            top: 10px;
-            right: 15px;
+            top: 8px;
+            right: 14px;
             color: #fff;
-            font-size: 34px;
+            font-size: 32px;
             font-weight: bold;
             cursor: pointer;
-            z-index: 50;
+            z-index: 60;
             text-shadow: 0 0 8px #000;
+            line-height: 1;
         }
 
         .subtitle-controls {
             position: absolute;
             top: 12px;
-            left: 20px;
+            left: 16px;
             z-index: 25;
             display: flex;
             align-items: center;
@@ -486,19 +488,30 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         video {
             width: 100%;
+            max-height: 85vh;
             display: block;
             outline: none;
             background: #000;
         }
 
-        /* Estilos del Juego 3D Doors en 1ª Persona */
+        /* Estilos del Juego 3D Doors adaptable (PC + Teléfono) */
         #doors3DContainer {
             position: relative;
             width: 100%;
-            height: 540px;
+            height: 70vh;
+            max-height: 580px;
+            min-height: 360px;
             background: #030305;
             cursor: crosshair;
             overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #doors3DContainer:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            max-height: 100vh;
         }
 
         #doorsHUD {
@@ -511,16 +524,37 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         .doors-room-counter {
             position: absolute;
-            top: 16px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.75);
+            top: 12px;
+            left: 14px;
+            background: rgba(0, 0, 0, 0.78);
             border: 1px solid #ff9900;
             color: #ffbb33;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: clamp(12px, 2.5vw, 15px);
             font-weight: bold;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
+        }
+
+        .btn-fullscreen-doors {
+            position: absolute;
+            top: 12px;
+            right: 48px;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.82);
+            border: 1px solid #00f0ff;
+            color: #00f0ff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: clamp(10px, 2vw, 12px);
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        .btn-fullscreen-doors:hover {
+            background: rgba(0, 240, 255, 0.22);
         }
 
         .doors-crosshair {
@@ -529,7 +563,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             left: 50%;
             width: 8px;
             height: 8px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             box-shadow: 0 0 6px #fff;
@@ -540,23 +574,118 @@ PAGINA_WEB = """<!DOCTYPE html>
             top: 56%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #ff9900;
             color: #ffbb33;
             padding: 6px 14px;
             border-radius: 4px;
             font-size: 13px;
             display: none;
+            white-space: nowrap;
+        }
+
+        #doorsCinematicBanner {
+            position: absolute;
+            top: 55px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border-left: 3px solid #ff9900;
+            padding: 8px 16px;
+            color: #ffdd99;
+            font-family: monospace;
+            font-size: clamp(11px, 2.3vw, 14px);
+            letter-spacing: 1.5px;
+            z-index: 25;
+            display: none;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Controles Táctiles en Pantalla para Móvil / Tablet */
+        #mobileTouchControls {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 28;
+            display: none;
+        }
+
+        .touch-dpad {
+            position: absolute;
+            bottom: 18px;
+            left: 18px;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .touch-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .touch-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(20, 25, 38, 0.65);
+            border: 1.5px solid rgba(255, 187, 51, 0.55);
+            color: #ffdd99;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            touch-action: manipulation;
+        }
+
+        .touch-btn:active {
+            background: rgba(255, 153, 0, 0.45);
+            transform: scale(0.94);
+        }
+
+        .touch-actions {
+            position: absolute;
+            bottom: 22px;
+            right: 18px;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .touch-action-btn {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: rgba(15, 20, 32, 0.72);
+            border: 2px solid #00f0ff;
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+        }
+
+        .touch-action-btn.door-btn {
+            border-color: #ff9900;
+            box-shadow: 0 0 12px rgba(255, 153, 0, 0.35);
         }
 
         #doorsStartOverlay {
             position: absolute;
             inset: 0;
-            background: rgba(5, 5, 8, 0.85);
+            background: rgba(5, 5, 8, 0.88);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 30;
+            z-index: 35;
             cursor: pointer;
             text-align: center;
             padding: 20px;
@@ -564,8 +693,8 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         #doorsStartOverlay h2 {
             font-family: monospace;
-            font-size: 28px;
-            letter-spacing: 4px;
+            font-size: clamp(20px, 4vw, 28px);
+            letter-spacing: 3px;
             color: #ff9900;
             margin-bottom: 12px;
             text-shadow: 0 0 15px rgba(255, 153, 0, 0.6);
@@ -573,18 +702,18 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         #doorsStartOverlay p {
             color: #ccc;
-            font-size: 14px;
-            max-width: 440px;
-            line-height: 1.5;
+            font-size: clamp(12px, 2.8vw, 14px);
+            max-width: 460px;
+            line-height: 1.6;
         }
 
         .game-controls-bar {
             text-align: center;
-            padding: 12px;
+            padding: 10px;
             background: #0d111a;
             color: #ffbb33;
             font-family: monospace;
-            font-size: 13px;
+            font-size: clamp(11px, 2.2vw, 13px);
         }
 
         @keyframes spinGear { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -666,18 +795,18 @@ PAGINA_WEB = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Apartado de JUEGO 3D TERROR (DOORS 1ª PERSONA) -->
+                <!-- Tarjeta 2: Apartado de JUEGO 3D TERROR (DOORS 1ª PERSONA PC + MÓVIL) -->
                 <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego3D()">
-                    <div style="height: 390px; background: radial-gradient(circle, #2a1808 0%, #050507 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                    <div style="height: 380px; background: radial-gradient(circle, #2a1808 0%, #050507 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
                         <span style="font-size: 80px; filter: drop-shadow(0 0 20px #ff9900);">🚪</span>
                         <span style="font-family: monospace; font-size: 13px; letter-spacing: 3px; color: #ffbb33;">HORROR 3D • 1ª PERSONA</span>
                     </div>
                     <div class="info">
                         <h3>JUEGO: DOORS 3D</h3>
                         <div class="badges">
-                            <span class="badge-pill" style="border-color: #ff9900; color: #ffbb33;">3D FIRST PERSON</span>
-                            <span class="badge-pill">TERROR</span>
-                            <span>Linterna & Puertas</span>
+                            <span class="badge-pill" style="border-color: #ff9900; color: #ffbb33;">PC & TELÉFONO</span>
+                            <span class="badge-pill">ASCENSOR + LOBBY</span>
+                            <span>F11 Full</span>
                         </div>
                     </div>
                 </div>
@@ -701,24 +830,45 @@ PAGINA_WEB = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Modal del Juego 3D Terror (Doors 1ª Persona) -->
+    <!-- Modal del Juego 3D Terror (PC + Teléfono Táctil + Cinemática Ascensor + F11) -->
     <div id="gameModal" class="modal">
-        <div class="modal-box" style="border-color: #ff9900; max-width: 920px;">
+        <div class="modal-box" style="border-color: #ff9900; max-width: 960px;">
             <span class="modal-close" onclick="cerrarJuego3D()">&times;</span>
             <div id="doors3DContainer">
                 <div id="doorsHUD">
-                    <div class="doors-room-counter" id="roomCounter">PUERTA 0001</div>
+                    <div class="doors-room-counter" id="roomCounter">ASCENSOR • B2</div>
+                    <button class="btn-fullscreen-doors" onclick="togglePantallaCompletaDoors()">[F11] FULLSCREEN</button>
                     <div class="doors-crosshair"></div>
-                    <div class="doors-prompt" id="doorPrompt">[CLIC] ABRIR PUERTA</div>
+                    <div class="doors-prompt" id="doorPrompt">[CLIC / 🚪] ABRIR PUERTA</div>
                 </div>
-                <div id="doorsStartOverlay" onclick="bloquearRatonDoors()">
-                    <h2>DOORS 3D // 1ª PERSONA</h2>
-                    <p>Haz clic aquí para entrar en primera persona.<br><br>
-                    Explora los pasillos oscuros y abre las puertas numeradas.</p>
+
+                <div id="doorsCinematicBanner">SUBIENDO AL VESTÍBULO DEL HOTEL...</div>
+
+                <!-- Controles táctiles para teléfonos y tablets -->
+                <div id="mobileTouchControls">
+                    <div class="touch-dpad">
+                        <button class="touch-btn" id="btnTouchW">▲</button>
+                        <div class="touch-row">
+                            <button class="touch-btn" id="btnTouchA">◀</button>
+                            <button class="touch-btn" id="btnTouchS">▼</button>
+                            <button class="touch-btn" id="btnTouchD">▶</button>
+                        </div>
+                    </div>
+                    <div class="touch-actions">
+                        <button class="touch-action-btn" id="btnTouchFlash" onclick="alternarLinterna()">🔦</button>
+                        <button class="touch-action-btn door-btn" id="btnTouchDoor" onclick="intentarAbrirPuerta()">🚪</button>
+                    </div>
+                </div>
+
+                <div id="doorsStartOverlay" onclick="iniciarExperienciaDoors()">
+                    <h2>DOORS 3D // EL ASCENSOR</h2>
+                    <p>Toca aquí para iniciar la cinemática de subida en primera persona.<br><br>
+                    <b>PC:</b> WASD + Ratón + F (Linterna) + F11.<br>
+                    <b>Móvil:</b> Cruceta táctil + Deslizar dedo para mirar.</p>
                 </div>
             </div>
             <div class="game-controls-bar">
-                [W A S D] Caminar • [RATÓN] Mirar en 1ª Persona • [F] Linterna • [CLIC] Abrir Puerta • [ESC] Liberar Ratón
+                PC: [WASD] + [RATÓN] + [F] Linterna + [F11] • MÓVIL: Controles táctiles + Deslizar pantalla
             </div>
         </div>
     </div>
@@ -787,6 +937,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                 gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.6);
+
             } else if (type === 'door_creak') {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -799,6 +950,19 @@ PAGINA_WEB = """<!DOCTYPE html>
                 gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.55);
+
+            } else if (type === 'elevator_ding') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.setValueAtTime(1174.66, now + 0.12);
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 1.1);
             }
         }
 
@@ -875,7 +1039,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             return (h * 3600) + (m * 60) + s;
         }
 
-        // LIMPIEZA ESTRICTA DE SUBTÍTULOS: SOLO VOZ
         function cargarSubtitulosEnPlayer(player) {
             while (player.firstChild) {
                 player.removeChild(player.firstChild);
@@ -960,7 +1123,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         // ============================================================
-        // MOTOR 3D EN PRIMERA PERSONA ESTILO "DOORS" (THREE.JS)
+        // MOTOR 3D MULTIPLATAFORMA (PC + TELÉFONO): DOORS 1ª PERSONA
         // ============================================================
         let scene3D, camera3D, renderer3D, flashlight, animFrame3D;
         let doorsActive = false;
@@ -969,13 +1132,25 @@ PAGINA_WEB = """<!DOCTYPE html>
         let activeDoorOpen = false;
         let roomZOffset = 0;
 
-        // Controles de primera persona
+        // Cinemática de Ascensor
+        let elevatorGroup, elevDoorLeft, elevDoorRight, elevLight;
+        let cinematicState = "WAITING"; // WAITING -> RISING -> OPENING_DOORS -> PLAYABLE
+        let cinematicTimer = 0;
+        let elevatorStartY = -14;
+
+        // Controles en 1ª persona
         let yaw = 0;
         let pitch = 0;
         const moveKeys = { w: false, a: false, s: false, d: false };
         let flashlightOn = true;
 
-        function crearTexturaPlaca(numero) {
+        // Detección de dispositivo táctil
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        let lookTouchId = null;
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+
+        function crearTexturaPlaca(texto) {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
             canvas.height = 128;
@@ -986,78 +1161,138 @@ PAGINA_WEB = """<!DOCTYPE html>
             ctx.lineWidth = 8;
             ctx.strokeRect(8, 8, 240, 112);
             ctx.fillStyle = '#ffd700';
-            ctx.font = 'bold 54px monospace';
+            ctx.font = 'bold 50px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(String(numero).padStart(4, '0'), 128, 66);
+            ctx.fillText(texto, 128, 66);
             return new THREE.CanvasTexture(canvas);
         }
 
-        function construirHabitacionDoors(numHabitacion, zStart) {
-            const largo = 16;
-            const ancho = 6;
-            const alto = 4;
+        function construirAscensorYVestibulo() {
+            // 1. CABINA DEL ASCENSOR (Sube desde Y = -14 hasta Y = 0)
+            elevatorGroup = new THREE.Group();
+            elevatorGroup.position.set(0, elevatorStartY, 3.2);
 
-            const matPared = new THREE.MeshStandardMaterial({ color: 0x2a1a14, roughness: 0.85 });
-            const matSuelo = new THREE.MeshStandardMaterial({ color: 0x1a120d, roughness: 0.9 });
-            const matTecho = new THREE.MeshStandardMaterial({ color: 0x120d0a, roughness: 0.95 });
+            const matMetal = new THREE.MeshStandardMaterial({ color: 0x24262b, metalness: 0.7, roughness: 0.4 });
+            const matReja = new THREE.MeshStandardMaterial({ color: 0x3b352a, metalness: 0.8, roughness: 0.3 });
 
-            // Suelo
-            const suelo = new THREE.Mesh(new THREE.BoxGeometry(ancho, 0.2, largo), matSuelo);
-            suelo.position.set(0, -0.1, zStart - largo / 2);
-            scene3D.add(suelo);
+            const elevFloor = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.2, 3.2), matMetal);
+            elevFloor.position.set(0, -0.1, 0);
+            elevatorGroup.add(elevFloor);
 
-            // Techo
-            const techo = new THREE.Mesh(new THREE.BoxGeometry(ancho, 0.2, largo), matTecho);
-            techo.position.set(0, alto + 0.1, zStart - largo / 2);
-            scene3D.add(techo);
+            const elevCeil = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.2, 3.2), matMetal);
+            elevCeil.position.set(0, 3.1, 0);
+            elevatorGroup.add(elevCeil);
 
-            // Paredes laterales
-            const paredIzq = new THREE.Mesh(new THREE.BoxGeometry(0.3, alto, largo), matPared);
-            paredIzq.position.set(-ancho / 2, alto / 2, zStart - largo / 2);
-            scene3D.add(paredIzq);
+            const elevBack = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.2, 0.15), matMetal);
+            elevBack.position.set(0, 1.5, 1.55);
+            elevatorGroup.add(elevBack);
 
-            const paredDer = new THREE.Mesh(new THREE.BoxGeometry(0.3, alto, largo), matPared);
-            paredDer.position.set(ancho / 2, alto / 2, zStart - largo / 2);
-            scene3D.add(paredDer);
+            const elevLeft = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.2, 3.2), matMetal);
+            elevLeft.position.set(-1.55, 1.5, 0);
+            elevatorGroup.add(elevLeft);
 
-            // Luz tenue de lámpara colgante en el pasillo
-            const lamparaLuz = new THREE.PointLight(0xffaa44, 0.55, 11);
-            lamparaLuz.position.set(0, alto - 0.5, zStart - largo / 2);
-            scene3D.add(lamparaLuz);
+            const elevRight = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.2, 3.2), matMetal);
+            elevRight.position.set(1.55, 1.5, 0);
+            elevatorGroup.add(elevRight);
 
-            // Pared frontal con hueco para la puerta
-            const zPuerta = zStart - largo;
-            const matMarco = new THREE.MeshStandardMaterial({ color: 0x1c110a });
+            elevDoorLeft = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.9, 0.1), matReja);
+            elevDoorLeft.position.set(-0.75, 1.45, -1.5);
+            elevatorGroup.add(elevDoorLeft);
 
-            const muroIzqPuerta = new THREE.Mesh(new THREE.BoxGeometry(2.1, alto, 0.3), matPared);
-            muroIzqPuerta.position.set(-1.95, alto / 2, zPuerta);
-            scene3D.add(muroIzqPuerta);
+            elevDoorRight = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.9, 0.1), matReja);
+            elevDoorRight.position.set(0.75, 1.45, -1.5);
+            elevatorGroup.add(elevDoorRight);
 
-            const muroDerPuerta = new THREE.Mesh(new THREE.BoxGeometry(2.1, alto, 0.3), matPared);
-            muroDerPuerta.position.set(1.95, alto / 2, zPuerta);
-            scene3D.add(muroDerPuerta);
+            elevLight = new THREE.PointLight(0xffaa33, 1.3, 6);
+            elevLight.position.set(0, 2.7, 0);
+            elevatorGroup.add(elevLight);
 
-            const dintel = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 0.3), matPared);
-            dintel.position.set(0, alto - 0.6, zPuerta);
-            scene3D.add(dintel);
+            scene3D.add(elevatorGroup);
 
-            // Pivote y Hoja de la Puerta
+            // 2. VESTÍBULO DEL HOTEL (LOBBY)
+            const anchoLobby = 12;
+            const largoLobby = 16;
+            const altoLobby = 4.6;
+
+            const matParedLobby = new THREE.MeshStandardMaterial({ color: 0x361e16, roughness: 0.8 });
+            const matAlfombra = new THREE.MeshStandardMaterial({ color: 0x4d1216, roughness: 0.9 });
+            const matMadera = new THREE.MeshStandardMaterial({ color: 0x24130a, roughness: 0.6 });
+
+            const sueloLobby = new THREE.Mesh(new THREE.BoxGeometry(anchoLobby, 0.2, largoLobby), matAlfombra);
+            sueloLobby.position.set(0, -0.1, -6.4);
+            scene3D.add(sueloLobby);
+
+            const techoLobby = new THREE.Mesh(new THREE.BoxGeometry(anchoLobby, 0.2, largoLobby), matMadera);
+            techoLobby.position.set(0, altoLobby + 0.1, -6.4);
+            scene3D.add(techoLobby);
+
+            const paredLobbyIzq = new THREE.Mesh(new THREE.BoxGeometry(0.3, altoLobby, largoLobby), matParedLobby);
+            paredLobbyIzq.position.set(-anchoLobby / 2, altoLobby / 2, -6.4);
+            scene3D.add(paredLobbyIzq);
+
+            const paredLobbyDer = new THREE.Mesh(new THREE.BoxGeometry(0.3, altoLobby, largoLobby), matParedLobby);
+            paredLobbyDer.position.set(anchoLobby / 2, altoLobby / 2, -6.4);
+            scene3D.add(paredLobbyDer);
+
+            const muroAtrasIzq = new THREE.Mesh(new THREE.BoxGeometry(4.4, altoLobby, 0.3), matParedLobby);
+            muroAtrasIzq.position.set(-3.8, altoLobby / 2, 1.6);
+            scene3D.add(muroAtrasIzq);
+
+            const muroAtrasDer = new THREE.Mesh(new THREE.BoxGeometry(4.4, altoLobby, 0.3), matParedLobby);
+            muroAtrasDer.position.set(3.8, altoLobby / 2, 1.6);
+            scene3D.add(muroAtrasDer);
+
+            const dintelAscensor = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.5, 0.3), matParedLobby);
+            dintelAscensor.position.set(0, 3.85, 1.6);
+            scene3D.add(dintelAscensor);
+
+            const mostrador = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.15, 4.5), matMadera);
+            mostrador.position.set(4.2, 0.58, -5.5);
+            scene3D.add(mostrador);
+
+            const cartelRecep = new THREE.Mesh(
+                new THREE.PlaneGeometry(2.4, 0.55),
+                new THREE.MeshBasicMaterial({ map: crearTexturaPlaca("RECEPTION") })
+            );
+            cartelRecep.position.set(5.8, 2.7, -5.5);
+            cartelRecep.rotation.y = -Math.PI / 2;
+            scene3D.add(cartelRecep);
+
+            const luzLobby = new THREE.PointLight(0xffbb66, 1.1, 18);
+            luzLobby.position.set(0, altoLobby - 0.6, -6.4);
+            scene3D.add(luzLobby);
+
+            const zPuerta1 = -14.4;
+            const muroFrenteIzq = new THREE.Mesh(new THREE.BoxGeometry(5.15, altoLobby, 0.3), matParedLobby);
+            muroFrenteIzq.position.set(-3.42, altoLobby / 2, zPuerta1);
+            scene3D.add(muroFrenteIzq);
+
+            const muroFrenteDer = new THREE.Mesh(new THREE.BoxGeometry(5.15, altoLobby, 0.3), matParedLobby);
+            muroFrenteDer.position.set(3.42, altoLobby / 2, zPuerta1);
+            scene3D.add(muroFrenteDer);
+
+            const dintelFrente = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.8, 0.3), matParedLobby);
+            dintelFrente.position.set(0, altoLobby - 0.9, zPuerta1);
+            scene3D.add(dintelFrente);
+
+            crearPuertaInteractiva(1, zPuerta1);
+        }
+
+        function crearPuertaInteractiva(numHabitacion, zPos) {
             const pivot = new THREE.Group();
-            pivot.position.set(-0.85, 0, zPuerta);
+            pivot.position.set(-0.85, 0, zPos);
 
             const matPuerta = new THREE.MeshStandardMaterial({ color: 0x4a2511, roughness: 0.6 });
             const hojaPuerta = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.8, 0.14), matPuerta);
             hojaPuerta.position.set(0.85, 1.4, 0);
             pivot.add(hojaPuerta);
 
-            // Placa numerada dorada
-            const placaMat = new THREE.MeshBasicMaterial({ map: crearTexturaPlaca(numHabitacion) });
+            const placaMat = new THREE.MeshBasicMaterial({ map: crearTexturaPlaca(String(numHabitacion).padStart(4, '0')) });
             const placa = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.32), placaMat);
             placa.position.set(0.85, 2.15, 0.08);
             pivot.add(placa);
 
-            // Pomo dorado
             const pomo = new THREE.Mesh(
                 new THREE.SphereGeometry(0.08, 12, 12),
                 new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 })
@@ -1068,7 +1303,73 @@ PAGINA_WEB = """<!DOCTYPE html>
             scene3D.add(pivot);
             activeDoorPivot = pivot;
             activeDoorOpen = false;
-            roomZOffset = zPuerta;
+            roomZOffset = zPos;
+        }
+
+        function construirPasilloSiguiente(numHabitacion, zStart) {
+            const largo = 16;
+            const ancho = 6;
+            const alto = 4;
+
+            const matPared = new THREE.MeshStandardMaterial({ color: 0x2a1a14, roughness: 0.85 });
+            const matSuelo = new THREE.MeshStandardMaterial({ color: 0x1a120d, roughness: 0.9 });
+            const matTecho = new THREE.MeshStandardMaterial({ color: 0x120d0a, roughness: 0.95 });
+
+            const suelo = new THREE.Mesh(new THREE.BoxGeometry(ancho, 0.2, largo), matSuelo);
+            suelo.position.set(0, -0.1, zStart - largo / 2);
+            scene3D.add(suelo);
+
+            const techo = new THREE.Mesh(new THREE.BoxGeometry(ancho, 0.2, largo), matTecho);
+            techo.position.set(0, alto + 0.1, zStart - largo / 2);
+            scene3D.add(techo);
+
+            const paredIzq = new THREE.Mesh(new THREE.BoxGeometry(0.3, alto, largo), matPared);
+            paredIzq.position.set(-ancho / 2, alto / 2, zStart - largo / 2);
+            scene3D.add(paredIzq);
+
+            const paredDer = new THREE.Mesh(new THREE.BoxGeometry(0.3, alto, largo), matPared);
+            paredDer.position.set(ancho / 2, alto / 2, zStart - largo / 2);
+            scene3D.add(paredDer);
+
+            const lamparaLuz = new THREE.PointLight(0xffaa44, 0.65, 12);
+            lamparaLuz.position.set(0, alto - 0.5, zStart - largo / 2);
+            scene3D.add(lamparaLuz);
+
+            const zPuerta = zStart - largo;
+            const muroIzqPuerta = new THREE.Mesh(new THREE.BoxGeometry(2.15, alto, 0.3), matPared);
+            muroIzqPuerta.position.set(-1.92, alto / 2, zPuerta);
+            scene3D.add(muroIzqPuerta);
+
+            const muroDerPuerta = new THREE.Mesh(new THREE.BoxGeometry(2.15, alto, 0.3), matPared);
+            muroDerPuerta.position.set(1.92, alto / 2, zPuerta);
+            scene3D.add(muroDerPuerta);
+
+            const dintel = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.2, 0.3), matPared);
+            dintel.position.set(0, alto - 0.6, zPuerta);
+            scene3D.add(dintel);
+
+            crearPuertaInteractiva(numHabitacion, zPuerta);
+        }
+
+        function alternarLinterna() {
+            if (!flashlight) return;
+            flashlightOn = !flashlightOn;
+            flashlight.intensity = flashlightOn ? 2.6 : 0;
+            playAudio('type');
+        }
+
+        function intentarAbrirPuerta() {
+            if (!doorsActive || cinematicState !== "PLAYABLE") return;
+            if (activeDoorPivot && !activeDoorOpen) {
+                const dist = Math.abs(camera3D.position.z - roomZOffset);
+                if (dist < 3.9) {
+                    activeDoorOpen = true;
+                    playAudio('door_creak');
+                    currentRoomNum++;
+                    document.getElementById("roomCounter").innerText = "PUERTA " + String(currentRoomNum).padStart(4, '0');
+                    construirPasilloSiguiente(currentRoomNum, roomZOffset);
+                }
+            }
         }
 
         function abrirJuego3D() {
@@ -1077,51 +1378,72 @@ PAGINA_WEB = """<!DOCTYPE html>
             modal.style.display = "flex";
             doorsActive = true;
 
-            // Reiniciar variables
             currentRoomNum = 1;
-            document.getElementById("roomCounter").innerText = "PUERTA 0001";
+            cinematicState = "WAITING";
+            cinematicTimer = 0;
+            document.getElementById("roomCounter").innerText = "ASCENSOR • B2";
             document.getElementById("doorsStartOverlay").style.display = "flex";
+            document.getElementById("doorsCinematicBanner").style.display = "none";
+            document.getElementById("mobileTouchControls").style.display = isTouchDevice ? "block" : "none";
+
             yaw = 0;
             pitch = 0;
             flashlightOn = true;
 
-            // Limpiar render anterior si existía
             const oldCanvas = container.querySelector("canvas");
             if (oldCanvas) oldCanvas.remove();
 
             scene3D = new THREE.Scene();
             scene3D.background = new THREE.Color(0x030305);
-            scene3D.fog = new THREE.FogExp2(0x030305, 0.085);
+            scene3D.fog = new THREE.FogExp2(0x030305, 0.055);
 
-            camera3D = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 60);
-            camera3D.position.set(0, 1.65, -1.5); // Altura de los ojos en 1ª persona
+            camera3D = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 75);
+            camera3D.position.set(0, elevatorStartY + 1.65, 3.2);
 
             renderer3D = new THREE.WebGLRenderer({ antialias: true });
+            renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer3D.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer3D.domElement);
 
-            // Luz ambiental mínima
-            const amb = new THREE.AmbientLight(0x222233, 0.35);
+            const amb = new THREE.AmbientLight(0x2a2520, 0.45);
             scene3D.add(amb);
 
-            // Linterna en Primera Persona ligada a la cámara
-            flashlight = new THREE.SpotLight(0xfff5e0, 2.4, 22, Math.PI / 5.5, 0.45, 1.2);
+            // LINTERNA MÁS ANCHA Y DE MAYOR ALCANCE (Math.PI / 3.4 de ángulo y 32m de distancia)
+            flashlight = new THREE.SpotLight(0xfff5e0, 2.6, 32, Math.PI / 3.4, 0.55, 1.0);
             flashlight.position.set(0, 0, 0);
             flashlight.target.position.set(0, 0, -1);
             camera3D.add(flashlight);
             camera3D.add(flashlight.target);
             scene3D.add(camera3D);
 
-            construirHabitacionDoors(currentRoomNum, 0);
+            construirAscensorYVestibulo();
 
             if (!animFrame3D) {
                 bucleDoors3D();
             }
         }
 
+        function iniciarExperienciaDoors() {
+            const container = document.getElementById("doors3DContainer");
+            document.getElementById("doorsStartOverlay").style.display = "none";
+
+            // En PC bloquea el ratón; en teléfono no es necesario
+            if (!isTouchDevice && container.requestPointerLock) {
+                container.requestPointerLock();
+            }
+
+            if (cinematicState === "WAITING") {
+                cinematicState = "RISING";
+                document.getElementById("doorsCinematicBanner").style.display = "block";
+            }
+        }
+
         function cerrarJuego3D() {
             doorsActive = false;
             document.getElementById("gameModal").style.display = "none";
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
             if (document.pointerLockElement) {
                 document.exitPointerLock();
             }
@@ -1131,23 +1453,47 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         }
 
-        function bloquearRatonDoors() {
+        function togglePantallaCompletaDoors() {
             const container = document.getElementById("doors3DContainer");
-            if (container.requestPointerLock) {
-                container.requestPointerLock();
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
             }
         }
 
+        function ajustarTamano3D() {
+            const container = document.getElementById("doors3DContainer");
+            if (renderer3D && camera3D && container) {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                camera3D.aspect = w / h;
+                camera3D.updateProjectionMatrix();
+                renderer3D.setSize(w, h);
+            }
+        }
+
+        document.addEventListener("fullscreenchange", ajustarTamano3D);
+        window.addEventListener("resize", ajustarTamano3D);
+
         document.addEventListener("pointerlockchange", () => {
+            if (isTouchDevice) return;
             const container = document.getElementById("doors3DContainer");
             const overlay = document.getElementById("doorsStartOverlay");
             if (document.pointerLockElement === container) {
                 overlay.style.display = "none";
-            } else if (doorsActive) {
+            } else if (doorsActive && cinematicState !== "WAITING") {
                 overlay.style.display = "flex";
             }
         });
 
+        // Mirada con Ratón en PC
         document.addEventListener("mousemove", (e) => {
             const container = document.getElementById("doors3DContainer");
             if (document.pointerLockElement === container && doorsActive) {
@@ -1157,34 +1503,89 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         });
 
+        // Clic izquierdo en PC para abrir puerta
         document.addEventListener("mousedown", (e) => {
             const container = document.getElementById("doors3DContainer");
             if (document.pointerLockElement === container && doorsActive && e.button === 0) {
-                // Comprobar distancia a la puerta activa
-                if (activeDoorPivot && !activeDoorOpen) {
-                    const dist = Math.abs(camera3D.position.z - roomZOffset);
-                    if (dist < 3.6) {
-                        activeDoorOpen = true;
-                        playAudio('door_creak');
-                        currentRoomNum++;
-                        document.getElementById("roomCounter").innerText = "PUERTA " + String(currentRoomNum).padStart(4, '0');
-                        construirHabitacionDoors(currentRoomNum, roomZOffset);
+                intentarAbrirPuerta();
+            }
+        });
+
+        // Controles Táctiles en Teléfono / Tablet
+        function configurarBotonTactil(id, tecla) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                moveKeys[tecla] = true;
+            }, { passive: false });
+            btn.addEventListener("touchend", (e) => {
+                e.preventDefault();
+                moveKeys[tecla] = false;
+            }, { passive: false });
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            configurarBotonTactil("btnTouchW", "w");
+            configurarBotonTactil("btnTouchA", "a");
+            configurarBotonTactil("btnTouchS", "s");
+            configurarBotonTactil("btnTouchD", "d");
+
+            const container3D = document.getElementById("doors3DContainer");
+            container3D.addEventListener("touchstart", (e) => {
+                if (!doorsActive || e.target.closest("button") || e.target.closest("#doorsStartOverlay")) return;
+                const touch = e.changedTouches[0];
+                if (lookTouchId === null) {
+                    lookTouchId = touch.identifier;
+                    lastTouchX = touch.clientX;
+                    lastTouchY = touch.clientY;
+                }
+            }, { passive: true });
+
+            container3D.addEventListener("touchmove", (e) => {
+                if (!doorsActive || lookTouchId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.identifier === lookTouchId) {
+                        const dx = touch.clientX - lastTouchX;
+                        const dy = touch.clientY - lastTouchY;
+                        lastTouchX = touch.clientX;
+                        lastTouchY = touch.clientY;
+
+                        yaw -= dx * 0.0055;
+                        pitch -= dy * 0.0055;
+                        pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+                        break;
                     }
                 }
-            }
+            }, { passive: true });
+
+            container3D.addEventListener("touchend", (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === lookTouchId) {
+                        lookTouchId = null;
+                        break;
+                    }
+                }
+            }, { passive: true });
         });
 
         window.addEventListener("keydown", (e) => {
             if (!doorsActive) return;
+
+            if (e.key === "F11") {
+                e.preventDefault();
+                togglePantallaCompletaDoors();
+                return;
+            }
+
             const k = e.key.toLowerCase();
             if (k === 'w') moveKeys.w = true;
             if (k === 'a') moveKeys.a = true;
             if (k === 's') moveKeys.s = true;
             if (k === 'd') moveKeys.d = true;
-            if (k === 'f' && flashlight) {
-                flashlightOn = !flashlightOn;
-                flashlight.intensity = flashlightOn ? 2.4 : 0;
-                playAudio('type');
+            if (k === 'f') {
+                alternarLinterna();
             }
         });
 
@@ -1199,52 +1600,104 @@ PAGINA_WEB = """<!DOCTYPE html>
         function bucleDoors3D() {
             if (!doorsActive) return;
 
-            // Rotación en 1ª persona (orden YXZ para mirada natural)
+            cinematicTimer += 0.016;
+
+            // --- FASE 1: CINEMÁTICA DE ASCENSOR SUBIENDO ---
+            if (cinematicState === "RISING") {
+                elevatorGroup.position.y += 0.065;
+
+                const shakeX = Math.sin(cinematicTimer * 45) * 0.012;
+                const shakeY = Math.cos(cinematicTimer * 38) * 0.01;
+                camera3D.position.set(shakeX, elevatorGroup.position.y + 1.65 + shakeY, 3.2);
+
+                elevLight.intensity = 1.1 + Math.sin(cinematicTimer * 30) * 0.25;
+
+                if (elevatorGroup.position.y < -8) {
+                    document.getElementById("roomCounter").innerText = "ASCENSOR • B2";
+                } else if (elevatorGroup.position.y < -3) {
+                    document.getElementById("roomCounter").innerText = "ASCENSOR • B1";
+                } else {
+                    document.getElementById("roomCounter").innerText = "ASCENSOR • PB";
+                }
+
+                if (elevatorGroup.position.y >= 0) {
+                    elevatorGroup.position.y = 0;
+                    camera3D.position.set(0, 1.65, 3.2);
+                    elevLight.intensity = 1.3;
+                    playAudio('elevator_ding');
+                    document.getElementById("roomCounter").innerText = "VESTÍBULO • 0001";
+                    document.getElementById("doorsCinematicBanner").innerText = "HAS LLEGADO AL VESTÍBULO";
+                    cinematicState = "OPENING_DOORS";
+                }
+
+            // --- FASE 2: APERTURA DE REJAS DEL ASCENSOR ---
+            } else if (cinematicState === "OPENING_DOORS") {
+                elevDoorLeft.position.x -= 0.03;
+                elevDoorRight.position.x += 0.03;
+
+                if (elevDoorLeft.position.x <= -2.1) {
+                    cinematicState = "PLAYABLE";
+                    setTimeout(() => {
+                        const banner = document.getElementById("doorsCinematicBanner");
+                        if (banner) banner.style.display = "none";
+                    }, 1800);
+                }
+            }
+
+            // Rotación en 1ª persona
             camera3D.rotation.order = 'YXZ';
             camera3D.rotation.y = yaw;
             camera3D.rotation.x = pitch;
 
-            // Movimiento horizontal en dirección de la mirada
-            const speed = 0.085;
-            const forwardX = -Math.sin(yaw);
-            const forwardZ = -Math.cos(yaw);
-            const rightX = Math.cos(yaw);
-            const rightZ = -Math.sin(yaw);
+            // --- FASE 3: MOVIMIENTO POR EL VESTÍBULO Y PASILLOS ---
+            if (cinematicState === "PLAYABLE") {
+                const speed = 0.09;
+                const forwardX = -Math.sin(yaw);
+                const forwardZ = -Math.cos(yaw);
+                const rightX = Math.cos(yaw);
+                const rightZ = -Math.sin(yaw);
 
-            if (moveKeys.w) {
-                camera3D.position.x += forwardX * speed;
-                camera3D.position.z += forwardZ * speed;
-            }
-            if (moveKeys.s) {
-                camera3D.position.x -= forwardX * speed;
-                camera3D.position.z -= forwardZ * speed;
-            }
-            if (moveKeys.a) {
-                camera3D.position.x -= rightX * speed;
-                camera3D.position.z -= rightZ * speed;
-            }
-            if (moveKeys.d) {
-                camera3D.position.x += rightX * speed;
-                camera3D.position.z += rightZ * speed;
+                if (moveKeys.w) {
+                    camera3D.position.x += forwardX * speed;
+                    camera3D.position.z += forwardZ * speed;
+                }
+                if (moveKeys.s) {
+                    camera3D.position.x -= forwardX * speed;
+                    camera3D.position.z -= forwardZ * speed;
+                }
+                if (moveKeys.a) {
+                    camera3D.position.x -= rightX * speed;
+                    camera3D.position.z -= rightZ * speed;
+                }
+                if (moveKeys.d) {
+                    camera3D.position.x += rightX * speed;
+                    camera3D.position.z += rightZ * speed;
+                }
+
+                if (camera3D.position.z > -14.4) {
+                    camera3D.position.x = Math.max(-5.2, Math.min(5.2, camera3D.position.x));
+                    camera3D.position.z = Math.min(4.3, camera3D.position.z);
+                } else {
+                    camera3D.position.x = Math.max(-2.3, Math.min(2.3, camera3D.position.x));
+                }
             }
 
-            // Colisión lateral con paredes del pasillo
-            camera3D.position.x = Math.max(-2.3, Math.min(2.3, camera3D.position.x));
-
-            // Animación suave de apertura de puerta y aviso en pantalla
+            // Aviso para abrir puerta
             const promptEl = document.getElementById("doorPrompt");
-            if (activeDoorPivot) {
+            if (activeDoorPivot && cinematicState === "PLAYABLE") {
                 const dist = Math.abs(camera3D.position.z - roomZOffset);
-                if (!activeDoorOpen && dist < 3.6) {
+                if (!activeDoorOpen && dist < 3.9) {
                     promptEl.style.display = "block";
                 } else {
                     promptEl.style.display = "none";
                 }
+            } else {
+                promptEl.style.display = "none";
             }
 
-            // Rotar puertas abiertas suavemente
+            // Animación suave de apertura de puertas
             scene3D.traverse((obj) => {
-                if (obj.type === "Group" && obj !== activeDoorPivot) {
+                if (obj.type === "Group" && obj !== activeDoorPivot && obj !== elevatorGroup) {
                     if (obj.rotation.y > -Math.PI / 2.1) {
                         obj.rotation.y -= 0.06;
                     }
