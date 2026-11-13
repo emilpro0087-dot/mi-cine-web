@@ -1154,36 +1154,18 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         }
 
-        function iniciarMusicaTerror() {
-            detenerMusicaTerror();
-            const notas = [110, 116.54, 130.81, 98.00, 82.41];
-            let step = 0;
-            ambientMusicTimer = setInterval(() => {
-                if (!doorsActive) return;
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const now = audioCtx.currentTime;
-                const freq = notas[step % notas.length];
-                step++;
+        // Música real descargada en /static/Corredor_Horror.mp3
+        const musicaHotelReal = new Audio('/static/Corredor_Horror.mp3');
+        musicaHotelReal.loop = true;
+        musicaHotelReal.volume = 0.45;
 
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now);
-                gain.gain.setValueAtTime(0.001, now);
-                gain.gain.linearRampToValueAtTime(0.055, now + 0.8);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 2.8);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 2.9);
-            }, 2600);
+        function iniciarMusicaTerror() {
+            musicaHotelReal.currentTime = 0;
+            musicaHotelReal.play().catch(err => console.warn("Audio esperando clic:", err));
         }
 
         function detenerMusicaTerror() {
-            if (ambientMusicTimer) {
-                clearInterval(ambientMusicTimer);
-                ambientMusicTimer = null;
-            }
+            musicaHotelReal.pause();
         }
 
         window.addEventListener("DOMContentLoaded", () => {
