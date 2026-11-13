@@ -536,7 +536,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             letter-spacing: 1.5px;
         }
 
-        /* Inventario y Batería de Linterna en el HUD */
         .doors-inventory-hud {
             position: absolute;
             top: 50px;
@@ -621,7 +620,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             top: 63%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(10, 25, 15, 0.9);
+            background: rgba(10, 25, 15, 0.92);
             border: 1px solid #00ff88;
             color: #00ff88;
             padding: 6px 14px;
@@ -650,7 +649,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             white-space: nowrap;
         }
 
-        /* Viñeta oscura cuando estás escondido dentro del armario */
         #closetVignette {
             position: absolute;
             inset: 0;
@@ -660,7 +658,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             z-index: 18;
         }
 
-        /* Pantalla de Game Over si te atrapa Rush */
         #doorsGameOver {
             position: absolute;
             inset: 0;
@@ -696,7 +693,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             cursor: pointer;
         }
 
-        /* Controles Táctiles en Pantalla para Móvil / Tablet */
         #mobileTouchControls {
             position: absolute;
             inset: 0;
@@ -894,7 +890,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: DOORS 3D REALISTA (1ª Persona + Manos + Loot + Armarios + Monstruo) -->
+                <!-- Tarjeta 2: DOORS 3D REALISTA -->
                 <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego3D()">
                     <div style="height: 380px; background: radial-gradient(circle, #301808 0%, #050507 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
                         <span style="font-size: 80px; filter: drop-shadow(0 0 20px #ff9900);">🚪</span>
@@ -904,7 +900,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                         <h3>JUEGO: DOORS 3D</h3>
                         <div class="badges">
                             <span class="badge-pill" style="border-color: #ff9900; color: #ffbb33;">1ª PERSONA + MANOS</span>
-                            <span class="badge-pill">LOOT & ARMARIOS</span>
+                            <span class="badge-pill">CAOS & LOOT</span>
                             <span>PC & Móvil</span>
                         </div>
                     </div>
@@ -938,7 +934,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <div id="doorsHUD">
                     <div class="doors-room-counter" id="roomCounter">ASCENSOR • B2</div>
                     <div class="doors-inventory-hud">
-                        <div id="flashlightLabel">🔦 LINTERNA: 1m (BÁSICA)</div>
+                        <div id="flashlightLabel">🔦 LINTERNA: POTENTE</div>
                         <div class="battery-bar-bg"><div id="batteryBarFill"></div></div>
                         <div id="lockpickLabel">🗝️ GANZÚAS: 0</div>
                     </div>
@@ -951,8 +947,8 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <div id="doorsCinematicBanner">SUBIENDO AL VESTÍBULO DEL HOTEL...</div>
 
                 <div id="doorsGameOver">
-                    <h2>TE ATRAPÓ LA ENTIDAD</h2>
-                    <p style="color:#ffaaaa;">Cuando los focos parpadeen, escóndete rápido dentro de un armario.</p>
+                    <h2>TE ATRAPÓ LA ENTIDAD DEL CAOS</h2>
+                    <p style="color:#ffaaaa;">Cuando los focos parpadeen y tiemble el suelo, escóndete en un armario.</p>
                     <button onclick="abrirJuego3D()">REINTENTAR</button>
                 </div>
 
@@ -975,12 +971,13 @@ PAGINA_WEB = """<!DOCTYPE html>
 
                 <div id="doorsStartOverlay" onclick="iniciarExperienciaDoors()">
                     <h2>DOORS 3D // EL HOTEL</h2>
-                    <p>Tu linterna inicial solo alcanza <b>1 metro</b>. Abre cajones de muebles (<b>[E]</b> o <b>✋</b>) para buscar ganzúas, pilas y linternas potentes.<br><br>
-                    Si los focos parpadean, escóndete en un <b>armario</b>.</p>
+                    <p>Abre cajones (<b>[E]</b> o <b>✋</b>) para ver qué hay dentro y decidir si recogerlo.<br>
+                    A partir de la habitación 5 las luces serán aleatorias, y cada 15 habrá caos total.<br><br>
+                    Cuando venga el monstruo, escóndete en un <b>armario</b>.</p>
                 </div>
             </div>
             <div class="game-controls-bar">
-                [WASD] Caminar • [E / ✋] Abrir Cajón / Armario • [CLIC / 🚪] Abrir Puerta • [F] Linterna • [F11] Pantalla Completa
+                [WASD] Caminar • [E / ✋] Abrir Cajón / Recoger / Armario • [CLIC / 🚪] Puerta • [F] Linterna • [F11] Pantalla Completa
             </div>
         </div>
     </div>
@@ -1081,14 +1078,14 @@ PAGINA_WEB = """<!DOCTYPE html>
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(190, now);
-                osc.frequency.linearRampToValueAtTime(125, now + 0.22);
+                osc.frequency.setValueAtTime(185, now);
+                osc.frequency.linearRampToValueAtTime(120, now + 0.25);
                 gain.gain.setValueAtTime(0.18, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.22);
+                osc.stop(now + 0.25);
 
             } else if (type === 'loot_pickup') {
                 [523.25, 659.25, 783.99].forEach((f, i) => {
@@ -1105,47 +1102,61 @@ PAGINA_WEB = """<!DOCTYPE html>
                 });
 
             } else if (type === 'monster_roar') {
-                // Rugido siniestro de la entidad Rush acercándose
+                // Rugido siniestro de la entidad Rush causando caos
                 const osc1 = audioCtx.createOscillator();
                 const osc2 = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc1.type = 'sawtooth';
                 osc2.type = 'square';
-                osc1.frequency.setValueAtTime(55, now);
-                osc1.frequency.exponentialRampToValueAtTime(140, now + 1.5);
-                osc1.frequency.exponentialRampToValueAtTime(38, now + 3.2);
-                osc2.frequency.setValueAtTime(58, now);
-                osc2.frequency.exponentialRampToValueAtTime(132, now + 1.5);
+                osc1.frequency.setValueAtTime(52, now);
+                osc1.frequency.exponentialRampToValueAtTime(155, now + 1.4);
+                osc1.frequency.exponentialRampToValueAtTime(34, now + 3.4);
+                osc2.frequency.setValueAtTime(55, now);
+                osc2.frequency.exponentialRampToValueAtTime(148, now + 1.4);
                 gain.gain.setValueAtTime(0.01, now);
-                gain.gain.linearRampToValueAtTime(0.32, now + 1.5);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 3.4);
+                gain.gain.linearRampToValueAtTime(0.36, now + 1.4);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 3.6);
                 osc1.connect(gain);
                 osc2.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc1.start(now);
                 osc2.start(now);
-                osc1.stop(now + 3.4);
-                osc2.stop(now + 3.4);
+                osc1.stop(now + 3.6);
+                osc2.stop(now + 3.6);
 
-            } else if (type === 'footstep') {
+            } else if (type === 'chaos_crash') {
+                // Estruendo de muebles volcándose al pasar el monstruo
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(95, now);
-                osc.frequency.exponentialRampToValueAtTime(35, now + 0.08);
-                gain.gain.setValueAtTime(0.09, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(28, now + 0.35);
+                gain.gain.setValueAtTime(0.26, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.08);
+                osc.stop(now + 0.35);
+
+            } else if (type === 'footstep') {
+                // Sonido de pisada realista en madera/alfombra
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(105, now);
+                osc.frequency.exponentialRampToValueAtTime(36, now + 0.085);
+                gain.gain.setValueAtTime(0.13, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.085);
             }
         }
 
-        // Música ambiental siniestra estilo Doors (notas graves y acordes menores tensos)
         function iniciarMusicaTerror() {
             detenerMusicaTerror();
-            const notas = [110, 116.54, 130.81, 98.00, 82.41]; // La, Sib, Do, Sol, Mi grave
+            const notas = [110, 116.54, 130.81, 98.00, 82.41];
             let step = 0;
             ambientMusicTimer = setInterval(() => {
                 if (!doorsActive) return;
@@ -1332,7 +1343,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         }
 
         // ============================================================
-        // MOTOR 3D REALISTA: TEXTURAS MADERA REAL, MANOS, LOOT Y RUSH
+        // MOTOR 3D REALISTA: CAJONES INTERACTIVOS, CAOS Y CÁMARA VIVA
         // ============================================================
         let scene3D, camera3D, renderer3D, flashlight, handsGroup, animFrame3D;
         let doorsActive = false;
@@ -1342,26 +1353,27 @@ PAGINA_WEB = """<!DOCTYPE html>
         let activeDoorLocked = false;
         let roomZOffset = 0;
 
-        // Texturas procedurales realistas compartidas
         let texMaderaReal, texAlfombraReal, texParedHotel;
 
-        // Inventario y Linterna (Inicia con límite de 1 metro)
-        let flashlightRange = 2.6; // ~1m frente al avatar
-        let flashlightType = "1m (BÁSICA)";
+        // Linterna potente como antes
+        let flashlightRange = 28;
+        let flashlightType = "POTENTE (28m)";
         let flashlightBattery = 100;
         let lockpicksCount = 0;
 
-        // Objetos interactivos de cada habitación (cajones con loot y armarios)
-        let interactables = []; // { type: 'drawer'|'closet', mesh, x, z, opened, lootType, preClosetPos }
+        // Objetos interactivos (cajones que muestran contenido y armarios)
+        let interactables = [];
+        let furnitureGroups = []; // Mesas que el monstruo volcará al causar caos
         let isHidingInCloset = false;
         let savedPosBeforeCloset = { x: 0, z: 0 };
 
-        // Focos del techo y Monstruo (Rush)
-        let roomLights = [];
+        // Focos del techo y Monstruo del Caos
+        let roomLights = []; // { light, baseIntensity, chaoticFlicker }
         let monsterMesh = null;
         let monsterActive = false;
         let monsterWarningTimer = 0;
         let monsterZ = 0;
+        let cameraShakeIntensity = 0;
 
         // Cinemática de Ascensor
         let elevatorGroup, elevDoorLeft, elevDoorRight, elevLight;
@@ -1369,7 +1381,7 @@ PAGINA_WEB = """<!DOCTYPE html>
         let cinematicTimer = 0;
         let elevatorStartY = -14;
 
-        // Controles en 1ª persona
+        // Controles en 1ª persona y balanceo natural de cámara/brazos
         let yaw = 0;
         let pitch = 0;
         let walkBobTimer = 0;
@@ -1382,9 +1394,8 @@ PAGINA_WEB = """<!DOCTYPE html>
         let lastTouchX = 0;
         let lastTouchY = 0;
 
-        // --- GENERADORES DE TEXTURAS REALISTAS CON LÍNEAS OSCURAS ---
         function generarTexturasRealistas() {
-            // 1. Madera Realista con vetas onduladas y líneas oscuras de tablones
+            // 1. Madera realista con vetas oscuras marcadas
             const cMadera = document.createElement('canvas');
             cMadera.width = 512;
             cMadera.height = 512;
@@ -1401,7 +1412,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                 ctxM.bezierCurveTo(170, y + onda, 340, y - onda, 512, y);
                 ctxM.stroke();
             }
-            // Líneas oscuras marcadas de unión entre tablones de madera
             ctxM.fillStyle = 'rgba(10, 3, 0, 0.85)';
             for (let x = 0; x < 512; x += 64) {
                 ctxM.fillRect(x, 0, 3, 512);
@@ -1410,7 +1420,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             texMaderaReal.wrapS = THREE.RepeatWrapping;
             texMaderaReal.wrapT = THREE.RepeatWrapping;
 
-            // 2. Alfombra roja de hotel con trama tejida
+            // 2. Alfombra roja de hotel
             const cAlf = document.createElement('canvas');
             cAlf.width = 256;
             cAlf.height = 256;
@@ -1427,7 +1437,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             texAlfombraReal.wrapT = THREE.RepeatWrapping;
             texAlfombraReal.repeat.set(4, 8);
 
-            // 3. Pared de hotel con franjas y molduras oscuras
+            // 3. Pared de hotel con molduras oscuras
             const cPar = document.createElement('canvas');
             cPar.width = 256;
             cPar.height = 256;
@@ -1438,7 +1448,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             for (let x = 0; x < 256; x += 32) {
                 ctxP.fillRect(x, 0, 12, 256);
             }
-            // Zócalo inferior de madera oscura
             ctxP.fillStyle = '#1c0c05';
             ctxP.fillRect(0, 200, 256, 56);
             texParedHotel = new THREE.CanvasTexture(cPar);
@@ -1472,31 +1481,33 @@ PAGINA_WEB = """<!DOCTYPE html>
             const matPiel = new THREE.MeshStandardMaterial({ color: 0xd9a78b, roughness: 0.6 });
             const matLinterna = new THREE.MeshStandardMaterial({ color: 0x151518, metalness: 0.85, roughness: 0.25 });
 
-            // Brazo y mano izquierda
+            // Brazo izquierdo
+            const brazoIzqGroup = new THREE.Group();
             const brazoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.45), matManga);
             brazoIzq.position.set(-0.34, -0.32, -0.35);
             brazoIzq.rotation.y = -0.15;
-            handsGroup.add(brazoIzq);
+            brazoIzqGroup.add(brazoIzq);
 
             const manoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.09, 0.14), matPiel);
             manoIzq.position.set(-0.30, -0.31, -0.60);
-            handsGroup.add(manoIzq);
+            brazoIzqGroup.add(manoIzq);
+            handsGroup.add(brazoIzqGroup);
 
-            // Brazo y mano derecha sosteniendo la linterna
+            // Brazo derecho sosteniendo la linterna
+            const brazoDerGroup = new THREE.Group();
             const brazoDer = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.45), matManga);
             brazoDer.position.set(0.34, -0.30, -0.35);
             brazoDer.rotation.y = 0.15;
-            handsGroup.add(brazoDer);
+            brazoDerGroup.add(brazoDer);
 
             const manoDer = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.09, 0.14), matPiel);
             manoDer.position.set(0.30, -0.29, -0.60);
-            handsGroup.add(manoDer);
+            brazoDerGroup.add(manoDer);
 
-            // Cuerpo metálico de la linterna en la mano derecha
             const cuerpoLinterna = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.038, 0.24, 14), matLinterna);
             cuerpoLinterna.rotation.x = Math.PI / 2;
             cuerpoLinterna.position.set(0.30, -0.26, -0.68);
-            handsGroup.add(cuerpoLinterna);
+            brazoDerGroup.add(cuerpoLinterna);
 
             const lenteLinterna = new THREE.Mesh(
                 new THREE.CircleGeometry(0.03, 14),
@@ -1504,12 +1515,15 @@ PAGINA_WEB = """<!DOCTYPE html>
             );
             lenteLinterna.position.set(0.30, -0.26, -0.805);
             lenteLinterna.rotation.y = Math.PI;
-            handsGroup.add(lenteLinterna);
+            brazoDerGroup.add(lenteLinterna);
+
+            handsGroup.add(brazoDerGroup);
+            handsGroup.userData = { leftArm: brazoIzqGroup, rightArm: brazoDerGroup };
 
             camera3D.add(handsGroup);
         }
 
-        function crearMuebleConCajon(x, z, rotY, lootTipo) {
+        function crearMuebleConCajon(x, z, rotY, lootTipo, desordenado = false) {
             const matMadera = new THREE.MeshStandardMaterial({
                 map: texMaderaReal,
                 bumpMap: texMaderaReal,
@@ -1520,31 +1534,72 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             const grupoMesa = new THREE.Group();
             grupoMesa.position.set(x, 0, z);
-            grupoMesa.rotation.y = rotY;
+            grupoMesa.rotation.y = rotY + (desordenado ? (Math.random() - 0.5) * 0.7 : 0);
+            if (desordenado && Math.random() > 0.5) {
+                grupoMesa.rotation.z = 0.25;
+            }
 
-            // Cuerpo de la mesita de noche
-            const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.95, 0.75), matMadera);
+            const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.95, 0.8), matMadera);
             cuerpo.position.set(0, 0.475, 0);
             grupoMesa.add(cuerpo);
 
-            // Cajón deslizable frontal
+            // Cajón deslizable con fondo hueco para mostrar el objeto dentro
             const cajon = new THREE.Group();
-            cajon.position.set(0, 0.65, 0.38);
-            const frenteCajon = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.28, 0.12), matMadera);
-            const tirador = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), matTirador);
-            tirador.position.set(0, 0, 0.08);
-            cajon.add(frenteCajon);
-            cajon.add(tirador);
-            grupoMesa.add(cajon);
+            cajon.position.set(0, 0.65, 0.22);
 
+            const baseCajon = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.05, 0.52), matMadera);
+            baseCajon.position.set(0, -0.1, 0);
+            cajon.add(baseCajon);
+
+            const frenteCajon = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.28, 0.08), matMadera);
+            frenteCajon.position.set(0, 0, 0.24);
+            cajon.add(frenteCajon);
+
+            const tirador = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), matTirador);
+            tirador.position.set(0, 0, 0.30);
+            cajon.add(tirador);
+
+            // Crear el objeto 3D visible dentro del cajón (si lootTipo !== 'empty')
+            let itemMesh = null;
+            if (lootTipo === 'battery') {
+                itemMesh = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.05, 0.16, 12),
+                    new THREE.MeshStandardMaterial({ color: 0x00d8ff, emissive: 0x004466, metalness: 0.6 })
+                );
+                itemMesh.rotation.z = Math.PI / 2;
+                itemMesh.position.set(0, -0.02, 0.05);
+                cajon.add(itemMesh);
+            } else if (lootTipo === 'lockpick') {
+                itemMesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.04, 0.02, 0.22),
+                    new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0x554400, metalness: 0.9 })
+                );
+                itemMesh.rotation.y = 0.4;
+                itemMesh.position.set(0, -0.04, 0.05);
+                cajon.add(itemMesh);
+            } else if (lootTipo === 'super_flashlight') {
+                itemMesh = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.045, 0.055, 0.26, 12),
+                    new THREE.MeshStandardMaterial({ color: 0xff9900, emissive: 0x552200, metalness: 0.8 })
+                );
+                itemMesh.rotation.z = Math.PI / 2;
+                itemMesh.position.set(0, -0.02, 0.05);
+                cajon.add(itemMesh);
+            }
+
+            grupoMesa.add(cajon);
             scene3D.add(grupoMesa);
+            furnitureGroups.push(grupoMesa);
 
             interactables.push({
                 type: 'drawer',
                 mesh: cajon,
+                itemMesh: itemMesh,
                 x: x,
                 z: z,
                 opened: false,
+                targetZ: 0.22,
+                lootTaken: (lootTipo === 'empty'),
                 lootType: lootTipo
             });
         }
@@ -1561,7 +1616,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             armario.position.set(x, 0, z);
             armario.rotation.y = rotY;
 
-            // Estructura del armario grande
             const trasera = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.7, 0.15), matMadera);
             trasera.position.set(0, 1.35, -0.5);
             armario.add(trasera);
@@ -1578,7 +1632,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             techoArm.position.set(0, 2.7, 0);
             armario.add(techoArm);
 
-            // Dos puertas frontales entreabiertas
             const puertaIzq = new THREE.Mesh(new THREE.BoxGeometry(0.72, 2.55, 0.1), matMadera);
             puertaIzq.position.set(-0.38, 1.3, 0.52);
             puertaIzq.rotation.y = 0.25;
@@ -1636,20 +1689,20 @@ PAGINA_WEB = """<!DOCTYPE html>
             elevDoorRight.position.set(0.75, 1.45, -1.5);
             elevatorGroup.add(elevDoorRight);
 
-            elevLight = new THREE.PointLight(0xffaa33, 1.4, 7);
+            elevLight = new THREE.PointLight(0xffaa33, 1.5, 8);
             elevLight.position.set(0, 2.7, 0);
             elevatorGroup.add(elevLight);
 
             scene3D.add(elevatorGroup);
 
-            // 2. VESTÍBULO DEL HOTEL AMPLIO Y AMUEBLADO
+            // 2. VESTÍBULO DEL HOTEL BIEN ILUMINADO
             const anchoLobby = 14;
             const largoLobby = 18;
             const altoLobby = 4.8;
 
-            const matParedLobby = new THREE.MeshStandardMaterial({ map: texParedHotel, bumpMap: texParedHotel, bumpScale: 0.03, roughness: 0.8 });
-            const matAlfombra = new THREE.MeshStandardMaterial({ map: texAlfombraReal, bumpMap: texAlfombraReal, bumpScale: 0.02, roughness: 0.9 });
-            const matMadera = new THREE.MeshStandardMaterial({ map: texMaderaReal, bumpMap: texMaderaReal, bumpScale: 0.04, roughness: 0.55 });
+            const matParedLobby = new THREE.MeshStandardMaterial({ map: texParedHotel, bumpMap: texParedHotel, bumpScale: 0.03, roughness: 0.75 });
+            const matAlfombra = new THREE.MeshStandardMaterial({ map: texAlfombraReal, bumpMap: texAlfombraReal, bumpScale: 0.02, roughness: 0.85 });
+            const matMadera = new THREE.MeshStandardMaterial({ map: texMaderaReal, bumpMap: texMaderaReal, bumpScale: 0.04, roughness: 0.5 });
 
             const sueloLobby = new THREE.Mesh(new THREE.BoxGeometry(anchoLobby, 0.2, largoLobby), matAlfombra);
             sueloLobby.position.set(0, -0.1, -7.4);
@@ -1679,7 +1732,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             dintelAscensor.position.set(0, 3.95, 1.6);
             scene3D.add(dintelAscensor);
 
-            // Mostrador de Recepción de madera con vetas oscuras
             const mostrador = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 5.2), matMadera);
             mostrador.position.set(5.2, 0.6, -6.5);
             scene3D.add(mostrador);
@@ -1692,15 +1744,25 @@ PAGINA_WEB = """<!DOCTYPE html>
             cartelRecep.rotation.y = -Math.PI / 2;
             scene3D.add(cartelRecep);
 
-            // Mesita con cajón en el vestíbulo (contiene una Pilas / Batería) y Armario
-            crearMuebleConCajon(-5.5, -5.0, Math.PI / 2, "battery");
-            crearMuebleConCajon(-5.5, -10.0, Math.PI / 2, "lockpick");
+            crearMuebleConCajon(-5.5, -5.0, Math.PI / 2, "battery", false);
+            crearMuebleConCajon(-5.5, -10.0, Math.PI / 2, "lockpick", false);
             crearArmarioEscondite(-6.1, -7.5, Math.PI / 2);
 
-            const luzLobby = new THREE.PointLight(0xffbb66, 1.2, 20);
-            luzLobby.position.set(0, altoLobby - 0.6, -7.4);
-            scene3D.add(luzLobby);
-            roomLights.push(luzLobby);
+            // Iluminación abundante en el vestíbulo (araña central + dos apliques cálidos)
+            const luzLobbyCentro = new THREE.PointLight(0xffcc77, 2.2, 26);
+            luzLobbyCentro.position.set(0, altoLobby - 0.5, -7.4);
+            scene3D.add(luzLobbyCentro);
+            roomLights.push({ light: luzLobbyCentro, baseIntensity: 2.2, chaoticFlicker: false });
+
+            const luzLobbyFrente = new THREE.PointLight(0xffbb66, 1.6, 20);
+            luzLobbyFrente.position.set(0, altoLobby - 0.6, -13.5);
+            scene3D.add(luzLobbyFrente);
+            roomLights.push({ light: luzLobbyFrente, baseIntensity: 1.6, chaoticFlicker: false });
+
+            const luzLobbyRecep = new THREE.PointLight(0xffaa55, 1.5, 18);
+            luzLobbyRecep.position.set(4.5, 2.8, -6.5);
+            scene3D.add(luzLobbyRecep);
+            roomLights.push({ light: luzLobbyRecep, baseIntensity: 1.5, chaoticFlicker: false });
 
             const zPuerta1 = -16.4;
             const muroFrenteIzq = new THREE.Mesh(new THREE.BoxGeometry(6.15, altoLobby, 0.3), matParedLobby);
@@ -1777,25 +1839,44 @@ PAGINA_WEB = """<!DOCTYPE html>
             paredDer.position.set(ancho / 2, alto / 2, zStart - largo / 2);
             scene3D.add(paredDer);
 
-            // Foco en el techo de la habitación
-            const focoLuz = new THREE.PointLight(0xffaa44, 0.85, 16);
+            // --- LÓGICA DE ILUMINACIÓN PROGRESIVA Y CAOS CADA 15 HABITACIONES ---
+            const esZonaCaos15 = (numHabitacion >= 15 && (numHabitacion % 15 === 0 || numHabitacion % 15 <= 2));
+            let probLuz = 1.0; // Primeras 5 habitaciones siempre encendidas
+            if (esZonaCaos15) {
+                probLuz = 0.25; // Caos extremo cada 15 habitaciones
+            } else if (numHabitacion > 5) {
+                probLuz = 0.58; // Después de la 5 habitación es aleatorio
+            }
+
+            const luzEncendida = Math.random() < probLuz;
+            const intensidadFoco = luzEncendida ? (esZonaCaos15 ? 1.1 : 1.65) : 0.0;
+
+            const focoLuz = new THREE.PointLight(0xffbb66, intensidadFoco, 22);
             focoLuz.position.set(0, alto - 0.5, zStart - largo / 2);
             scene3D.add(focoLuz);
-            roomLights.push(focoLuz);
+            roomLights.push({
+                light: focoLuz,
+                baseIntensity: intensidadFoco,
+                chaoticFlicker: esZonaCaos15 && luzEncendida
+            });
 
-            // Amueblar habitación con armarios y mesas con cajones de loot
+            if (esZonaCaos15) {
+                mostrarNotificacionLoot("⚡ ZONA DE CAOS — LUCES INESTABLES", "#ff6600");
+            }
+
+            // Armarios para esconderse
             crearArmarioEscondite(-3.6, zStart - 8, Math.PI / 2);
             crearArmarioEscondite(3.6, zStart - 13, -Math.PI / 2);
 
-            // En la habitación 2 o 3 aparece la Linterna Potente en un cajón; en otras salen ganzúas o baterías
-            let tipoLoot1 = (numHabitacion === 2 && flashlightRange < 10) ? "super_flashlight" : "battery";
-            let tipoLoot2 = (numHabitacion % 2 === 0) ? "lockpick" : "battery";
+            // Muebles con cajones y objetos aleatorios
+            const opcionesLoot = ["battery", "lockpick", "super_flashlight", "empty"];
+            const loot1 = opcionesLoot[Math.floor(Math.random() * opcionesLoot.length)];
+            const loot2 = opcionesLoot[Math.floor(Math.random() * opcionesLoot.length)];
 
-            crearMuebleConCajon(-3.6, zStart - 14, Math.PI / 2, tipoLoot1);
-            crearMuebleConCajon(3.6, zStart - 6, -Math.PI / 2, tipoLoot2);
+            crearMuebleConCajon(-3.6, zStart - 14, Math.PI / 2, loot1, esZonaCaos15);
+            crearMuebleConCajon(3.6, zStart - 6, -Math.PI / 2, loot2, esZonaCaos15);
 
-            // Cada 3 puertas, la siguiente puerta estará cerrada con llave (requiere ganzúa)
-            const siguienteCerrada = (numHabitacion % 3 === 0);
+            const siguienteCerrada = (numHabitacion % 4 === 0);
 
             const zPuerta = zStart - largo;
             const muroIzqPuerta = new THREE.Mesh(new THREE.BoxGeometry(3.65, alto, 0.3), matPared);
@@ -1812,15 +1893,16 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             crearPuertaInteractiva(numHabitacion, zPuerta, siguienteCerrada);
 
-            // Activar aparición del Monstruo (Rush) a partir de la puerta 3 con probabilidad
-            if (numHabitacion >= 3 && numHabitacion % 2 === 1 && !monsterActive) {
-                activarEventoMonstruo(zStart + 18);
+            // Aparición del Monstruo del Caos (más frecuente en zonas de 15 habitaciones)
+            const probMonstruo = esZonaCaos15 ? 0.65 : (numHabitacion > 5 ? 0.35 : 0.2);
+            if (numHabitacion >= 3 && Math.random() < probMonstruo && !monsterActive) {
+                activarEventoMonstruo(zStart + 20);
             }
         }
 
         function activarEventoMonstruo(zSpawn) {
             monsterActive = true;
-            monsterWarningTimer = 3.2; // 3.2 segundos de parpadeo de luces antes de que pase volando
+            monsterWarningTimer = 3.2;
             monsterZ = zSpawn;
             playAudio('monster_roar');
             mostrarNotificacionLoot("⚠️ ¡LOS FOCOS PARPADEAN! ¡ESCÓNDETE EN UN ARMARIO!", "#ff3344");
@@ -1828,20 +1910,20 @@ PAGINA_WEB = """<!DOCTYPE html>
             if (!monsterMesh) {
                 const grupoMonstruo = new THREE.Group();
                 const sombra = new THREE.Mesh(
-                    new THREE.SphereGeometry(1.3, 16, 16),
+                    new THREE.SphereGeometry(1.4, 16, 16),
                     new THREE.MeshBasicMaterial({ color: 0x050505 })
                 );
                 grupoMonstruo.add(sombra);
 
-                const ojoIzq = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff0022 }));
-                ojoIzq.position.set(-0.4, 0.2, -1.15);
+                const ojoIzq = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff0022 }));
+                ojoIzq.position.set(-0.42, 0.2, -1.25);
                 grupoMonstruo.add(ojoIzq);
 
-                const ojoDer = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff0022 }));
-                ojoDer.position.set(0.4, 0.2, -1.15);
+                const ojoDer = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff0022 }));
+                ojoDer.position.set(0.42, 0.2, -1.25);
                 grupoMonstruo.add(ojoDer);
 
-                const luzMonstruo = new THREE.PointLight(0xff0022, 3, 12);
+                const luzMonstruo = new THREE.PointLight(0xff0022, 4, 15);
                 grupoMonstruo.add(luzMonstruo);
 
                 monsterMesh = grupoMonstruo;
@@ -1879,14 +1961,13 @@ PAGINA_WEB = """<!DOCTYPE html>
                 return;
             }
             flashlightOn = !flashlightOn;
-            flashlight.intensity = flashlightOn ? 2.8 : 0;
+            flashlight.intensity = flashlightOn ? 3.0 : 0;
             playAudio('type');
         }
 
         function interactuarCercano() {
             if (!doorsActive || cinematicState !== "PLAYABLE") return;
 
-            // Si ya estás escondido dentro de un armario, salir
             if (isHidingInCloset) {
                 isHidingInCloset = false;
                 camera3D.position.set(savedPosBeforeCloset.x, 1.65, savedPosBeforeCloset.z);
@@ -1895,11 +1976,11 @@ PAGINA_WEB = """<!DOCTYPE html>
                 return;
             }
 
-            // Buscar el mueble (cajón o armario) más cercano
             let masCercano = null;
-            let minDist = 2.6;
+            let minDist = 2.7;
 
             for (const item of interactables) {
+                if (item.type === 'drawer' && item.opened && item.lootTaken) continue;
                 const dx = camera3D.position.x - item.x;
                 const dz = camera3D.position.z - item.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
@@ -1912,7 +1993,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             if (!masCercano) return;
 
             if (masCercano.type === 'closet') {
-                // Entrar a esconderse en el armario
                 isHidingInCloset = true;
                 savedPosBeforeCloset = { x: camera3D.position.x, z: camera3D.position.z };
                 camera3D.position.set(masCercano.x, 1.65, masCercano.z);
@@ -1920,31 +2000,38 @@ PAGINA_WEB = """<!DOCTYPE html>
                 playAudio('drawer_open');
                 mostrarNotificacionLoot("ESCONDIDO EN EL ARMARIO (PULSA E / ✋ PARA SALIR)", "#ffbb33");
 
-            } else if (masCercano.type === 'drawer' && !masCercano.opened) {
-                masCercano.opened = true;
-                masCercano.mesh.position.z += 0.28; // Deslizar cajón hacia afuera
-                playAudio('drawer_open');
-
-                setTimeout(() => {
+            } else if (masCercano.type === 'drawer') {
+                // Paso 1: Si el cajón está cerrado, deslizarlo suavemente para ver qué tiene
+                if (!masCercano.opened) {
+                    masCercano.opened = true;
+                    masCercano.targetZ = 0.56; // Se desliza suavemente en bucleDoors3D
+                    playAudio('drawer_open');
+                    if (masCercano.lootType === 'empty') {
+                        mostrarNotificacionLoot("EL CAJÓN ESTÁ VACÍO", "#aaaaaa");
+                    }
+                // Paso 2: Si ya está abierto y tiene un objeto, decidir recogerlo
+                } else if (!masCercano.lootTaken && masCercano.itemMesh) {
+                    masCercano.lootTaken = true;
+                    masCercano.itemMesh.visible = false;
                     playAudio('loot_pickup');
+
                     if (masCercano.lootType === 'super_flashlight') {
-                        flashlightRange = 28;
-                        flashlightType = "18m (POTENTE)";
+                        flashlightRange = 36;
+                        flashlightType = "ULTRA (36m)";
                         flashlightBattery = 100;
                         flashlight.distance = flashlightRange;
-                        flashlight.angle = Math.PI / 3.4;
-                        flashlight.intensity = 3.0;
+                        flashlight.intensity = 3.4;
                         flashlightOn = true;
-                        mostrarNotificacionLoot("¡ENCONTRASTE UNA LINTERNA POTENTE (18m)!");
+                        mostrarNotificacionLoot("RECOGIENDO LINTERNA ULTRA POTENTE (36m)");
                     } else if (masCercano.lootType === 'lockpick') {
                         lockpicksCount++;
-                        mostrarNotificacionLoot("¡ENCONTRASTE UNA GANZÚA (+1)!");
-                    } else {
+                        mostrarNotificacionLoot("RECOGIENDO GANZÚA (+1)");
+                    } else if (masCercano.lootType === 'battery') {
                         flashlightBattery = Math.min(100, flashlightBattery + 55);
-                        mostrarNotificacionLoot("¡ENCONTRASTE PILAS (+55% BATERÍA)!");
+                        mostrarNotificacionLoot("RECOGIENDO PILAS (+55% BATERÍA)");
                     }
                     actualizarHUDInventario();
-                }, 150);
+                }
             }
         }
 
@@ -1985,14 +2072,15 @@ PAGINA_WEB = """<!DOCTYPE html>
             cinematicState = "WAITING";
             cinematicTimer = 0;
             interactables = [];
+            furnitureGroups = [];
             roomLights = [];
             isHidingInCloset = false;
             monsterActive = false;
             monsterMesh = null;
+            cameraShakeIntensity = 0;
 
-            // Reiniciar linterna con límite inicial de 1 metro
-            flashlightRange = 2.6;
-            flashlightType = "1m (BÁSICA)";
+            flashlightRange = 28;
+            flashlightType = "POTENTE (28m)";
             flashlightBattery = 100;
             lockpicksCount = 0;
             actualizarHUDInventario();
@@ -2015,9 +2103,9 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             scene3D = new THREE.Scene();
             scene3D.background = new THREE.Color(0x020204);
-            scene3D.fog = new THREE.FogExp2(0x020204, 0.068);
+            scene3D.fog = new THREE.FogExp2(0x020204, 0.045);
 
-            camera3D = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 75);
+            camera3D = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 80);
             camera3D.position.set(0, elevatorStartY + 1.65, 3.2);
 
             renderer3D = new THREE.WebGLRenderer({ antialias: true });
@@ -2025,11 +2113,11 @@ PAGINA_WEB = """<!DOCTYPE html>
             renderer3D.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer3D.domElement);
 
-            const amb = new THREE.AmbientLight(0x221d18, 0.4);
+            const amb = new THREE.AmbientLight(0x2e2822, 0.55);
             scene3D.add(amb);
 
-            // Linterna inicial de 1 metro de alcance (distance = 2.6 desde la cámara)
-            flashlight = new THREE.SpotLight(0xfff5e0, 2.8, flashlightRange, Math.PI / 3.8, 0.5, 1.0);
+            // Linterna potente y ancha desde el comienzo
+            flashlight = new THREE.SpotLight(0xfff5e0, 3.0, flashlightRange, Math.PI / 3.3, 0.5, 1.0);
             flashlight.position.set(0, 0, 0);
             flashlight.target.position.set(0, 0, -1);
             camera3D.add(flashlight);
@@ -2228,7 +2316,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                 const shakeY = Math.cos(cinematicTimer * 38) * 0.01;
                 camera3D.position.set(shakeX, elevatorGroup.position.y + 1.65 + shakeY, 3.2);
 
-                elevLight.intensity = 1.1 + Math.sin(cinematicTimer * 30) * 0.25;
+                elevLight.intensity = 1.2 + Math.sin(cinematicTimer * 30) * 0.25;
 
                 if (elevatorGroup.position.y < -8) {
                     document.getElementById("roomCounter").innerText = "ASCENSOR • B2";
@@ -2241,7 +2329,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                 if (elevatorGroup.position.y >= 0) {
                     elevatorGroup.position.y = 0;
                     camera3D.position.set(0, 1.65, 3.2);
-                    elevLight.intensity = 1.3;
+                    elevLight.intensity = 1.5;
                     playAudio('elevator_ding');
                     document.getElementById("roomCounter").innerText = "VESTÍBULO • 0001";
                     document.getElementById("doorsCinematicBanner").innerText = "HAS LLEGADO AL VESTÍBULO";
@@ -2262,16 +2350,23 @@ PAGINA_WEB = """<!DOCTYPE html>
                 }
             }
 
-            // Rotación en 1ª persona
+            // Rotación en 1ª persona + temblor si pasa el monstruo del caos
+            let camShakeX = 0;
+            let camShakeY = 0;
+            if (cameraShakeIntensity > 0.001) {
+                camShakeX = (Math.random() - 0.5) * cameraShakeIntensity;
+                camShakeY = (Math.random() - 0.5) * cameraShakeIntensity;
+                cameraShakeIntensity *= 0.94;
+            }
+
             camera3D.rotation.order = 'YXZ';
-            camera3D.rotation.y = yaw;
-            camera3D.rotation.x = pitch;
+            camera3D.rotation.y = yaw + camShakeX;
+            camera3D.rotation.x = pitch + camShakeY;
 
             // --- FASE 3: JUGABILIDAD EN 1ª PERSONA ---
             if (cinematicState === "PLAYABLE") {
-                // Consumo gradual de batería de linterna
                 if (flashlightOn && flashlightBattery > 0) {
-                    flashlightBattery -= 0.015;
+                    flashlightBattery -= 0.012;
                     if (flashlightBattery <= 0) {
                         flashlightBattery = 0;
                         flashlightOn = false;
@@ -2280,7 +2375,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                     if (Math.random() < 0.08) actualizarHUDInventario();
                 }
 
-                // Movimiento libre si no estás escondido dentro de un armario
                 let isMoving = false;
                 if (!isHidingInCloset) {
                     const speed = 0.095;
@@ -2294,7 +2388,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                     if (moveKeys.a) { camera3D.position.x -= rightX * speed; camera3D.position.z -= rightZ * speed; isMoving = true; }
                     if (moveKeys.d) { camera3D.position.x += rightX * speed; camera3D.position.z += rightZ * speed; isMoving = true; }
 
-                    // Límites de colisión
                     if (camera3D.position.z > -16.4) {
                         camera3D.position.x = Math.max(-6.1, Math.min(6.1, camera3D.position.x));
                         camera3D.position.z = Math.min(4.3, camera3D.position.z);
@@ -2303,35 +2396,71 @@ PAGINA_WEB = """<!DOCTYPE html>
                     }
                 }
 
-                // Balanceo realista de las manos al caminar + sonido de pasos
+                // Efecto natural de cámara y brazos al caminar + pasos sincronizados
                 if (isMoving && handsGroup) {
                     walkBobTimer += 0.16;
                     stepSoundTimer += 0.16;
-                    handsGroup.position.y = Math.sin(walkBobTimer) * 0.016;
-                    handsGroup.position.x = Math.cos(walkBobTimer * 0.5) * 0.014;
+
+                    // La cámara sube y baja levemente al dar cada paso (Camera Bobbing)
+                    camera3D.position.y = 1.65 + Math.abs(Math.sin(walkBobTimer)) * 0.045;
+
+                    // Balanceo alternado de brazo izquierdo y derecho
+                    handsGroup.position.y = Math.sin(walkBobTimer * 2) * 0.015;
+                    handsGroup.position.x = Math.cos(walkBobTimer) * 0.018;
+                    if (handsGroup.userData.leftArm && handsGroup.userData.rightArm) {
+                        handsGroup.userData.leftArm.rotation.x = Math.sin(walkBobTimer) * 0.06;
+                        handsGroup.userData.rightArm.rotation.x = -Math.sin(walkBobTimer) * 0.04;
+                    }
+
                     if (stepSoundTimer >= Math.PI) {
                         stepSoundTimer = 0;
                         playAudio('footstep');
                     }
-                } else if (handsGroup) {
-                    handsGroup.position.y *= 0.85;
-                    handsGroup.position.x *= 0.85;
+                } else {
+                    camera3D.position.y += (1.65 - camera3D.position.y) * 0.15;
+                    if (handsGroup) {
+                        handsGroup.position.y *= 0.85;
+                        handsGroup.position.x *= 0.85;
+                    }
                 }
 
-                // --- LÓGICA DEL MONSTRUO (RUSH) Y FOCOS PARPADEANTES ---
+                // Animación suave de deslizamiento de cajones al abrirse
+                for (const item of interactables) {
+                    if (item.type === 'drawer' && item.opened) {
+                        item.mesh.position.z += (item.targetZ - item.mesh.position.z) * 0.16;
+                    }
+                }
+
+                // Parpadeo caótico en habitaciones de zona 15
+                for (const rl of roomLights) {
+                    if (rl.chaoticFlicker && !monsterActive) {
+                        rl.light.intensity = Math.random() > 0.25 ? rl.baseIntensity : 0.05;
+                    }
+                }
+
+                // --- LÓGICA DEL MONSTRUO DEL CAOS ---
                 if (monsterActive) {
-                    // Hacer parpadear violentamente todos los focos del hotel
-                    for (const l of roomLights) {
-                        l.intensity = Math.random() > 0.45 ? 1.2 : 0.0;
+                    for (const rl of roomLights) {
+                        rl.light.intensity = Math.random() > 0.45 ? 1.8 : 0.0;
                     }
 
                     if (monsterWarningTimer > 0) {
                         monsterWarningTimer -= 0.016;
+                        cameraShakeIntensity = 0.015;
                     } else {
-                        // El monstruo cruza el pasillo a toda velocidad hacia el jugador
-                        monsterMesh.position.z -= 0.65;
+                        monsterMesh.position.z -= 0.72;
+                        cameraShakeIntensity = 0.065; // Temblor fuerte al pasar
 
-                        // Si pasa justo por encima del jugador y NO está escondido en un armario -> Game Over
+                        // Volcar mesas cercanas a su paso para causar caos real
+                        for (const mesa of furnitureGroups) {
+                            if (Math.abs(mesa.position.z - monsterMesh.position.z) < 2.2 && !mesa.userData.knocked) {
+                                mesa.userData.knocked = true;
+                                mesa.rotation.z = (mesa.position.x > 0 ? -1 : 1) * 0.55;
+                                mesa.rotation.y += (Math.random() - 0.5) * 0.8;
+                                playAudio('chaos_crash');
+                            }
+                        }
+
                         if (Math.abs(monsterMesh.position.z - camera3D.position.z) < 1.8) {
                             if (!isHidingInCloset) {
                                 doorsActive = false;
@@ -2343,18 +2472,17 @@ PAGINA_WEB = """<!DOCTYPE html>
                             }
                         }
 
-                        // Cuando el monstruo se aleja, se estabilizan los focos
                         if (monsterMesh.position.z < roomZOffset - 25) {
                             monsterActive = false;
                             monsterMesh.visible = false;
-                            for (const l of roomLights) l.intensity = 0.85;
-                            mostrarNotificacionLoot("EL PELIGRO HA PASADO. PUEDES SALIR.", "#00f0ff");
+                            for (const rl of roomLights) rl.light.intensity = rl.baseIntensity;
+                            mostrarNotificacionLoot("EL MONSTRUO SE HA IDO. PUEDES SALIR.", "#00f0ff");
                         }
                     }
                 }
             }
 
-            // Prompts contextuales (Puerta, Cajón o Armario)
+            // Prompts contextuales según lo que mires o tengas cerca
             const promptEl = document.getElementById("doorPrompt");
             if (cinematicState === "PLAYABLE") {
                 if (isHidingInCloset) {
@@ -2363,17 +2491,28 @@ PAGINA_WEB = """<!DOCTYPE html>
                 } else {
                     let nearObj = null;
                     for (const item of interactables) {
-                        if (item.type === 'drawer' && item.opened) continue;
+                        if (item.type === 'drawer' && item.opened && item.lootTaken) continue;
                         const dx = camera3D.position.x - item.x;
                         const dz = camera3D.position.z - item.z;
-                        if (Math.sqrt(dx * dx + dz * dz) < 2.6) {
+                        if (Math.sqrt(dx * dx + dz * dz) < 2.7) {
                             nearObj = item;
                             break;
                         }
                     }
 
                     if (nearObj) {
-                        promptEl.innerText = nearObj.type === 'closet' ? "[E / ✋] ESCONDERSE EN ARMARIO" : "[E / ✋] ABRIR CAJÓN";
+                        if (nearObj.type === 'closet') {
+                            promptEl.innerText = "[E / ✋] ESCONDERSE EN ARMARIO";
+                        } else if (!nearObj.opened) {
+                            promptEl.innerText = "[E / ✋] ABRIR CAJÓN";
+                        } else if (!nearObj.lootTaken) {
+                            const nombresLoot = {
+                                'battery': 'PILAS',
+                                'lockpick': 'GANZÚA',
+                                'super_flashlight': 'LINTERNA ULTRA'
+                            };
+                            promptEl.innerText = `[E / ✋] TOMAR ${nombresLoot[nearObj.lootType] || 'OBJETO'}`;
+                        }
                         promptEl.style.display = "block";
                     } else if (activeDoorPivot && !activeDoorOpen && Math.abs(camera3D.position.z - roomZOffset) < 3.8) {
                         promptEl.innerText = activeDoorLocked ? "[CLIC / 🚪] USAR GANZÚA" : "[CLIC / 🚪] ABRIR PUERTA";
