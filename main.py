@@ -5,7 +5,7 @@ from flask import Flask, render_template_string, Response, request
 app = Flask(__name__)
 
 # CONTROL DE VERSIÓN DE LA WEB (Sube +0.1 en cada actualización)
-APP_VERSION = "v0.3"
+APP_VERSION = "v0.4"
 
 CONTRASEÑA_CORRECTA = "perrofeoxd"
 
@@ -768,7 +768,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             <div id="doors3DContainer">
                 <div id="doorsHUD">
                     <div class="hud-pill" id="hudRoom">STANZA: LOBBY (0000)</div>
-                    <div class="hud-pill" id="hudInv">🔑 Grimaldelli: 0 | 🔦 Torcia: ON</div>
+                    <div class="hud-pill" id="hudInv">🔑 Grimaldelli: 0 | 🔋 Batteria: 100% | 🔦 Torcia: ON</div>
                     <div class="hud-pill" id="hudStatus" style="color: #00f0ff;">Ascensore in salita...</div>
                 </div>
 
@@ -776,10 +776,10 @@ PAGINA_WEB = """<!DOCTYPE html>
                 <div id="promptText">Premi [E] o Clic per interagire</div>
 
                 <div id="startOverlay3D" onclick="iniciarControl3D()">
-                    <h2 style="color: #00f0ff; font-family: monospace; font-size: 26px; margin-bottom: 10px;">DOORS 3D - FIRST PERSON</h2>
-                    <p style="color: #ccc; max-width: 480px; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-                        PC: [WASD] Muovi • [Mouse] Guarda • [E / Clic] Apri porte e cassetti • [F] Torcia • [F11] Schermo intero<br>
-                        MOBILE: Usa i tasti su schermo e trascina il dito per guardarti intorno.
+                    <h2 style="color: #00f0ff; font-family: monospace; font-size: 26px; margin-bottom: 10px;">DOORS 3D - L'HOTEL</h2>
+                    <p style="color: #ccc; max-width: 500px; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+                        PC: [WASD] Muovi • [Mouse] Guarda • [E / Clic] Apri porte, cassetti e armadi • [F] Torcia • [F11] Schermo intero<br>
+                        ATTENZIONE: Se le luci sfarfallano, nasconditi subito in un ARMADIO!
                     </p>
                     <div style="padding: 12px 26px; background: #00f0ff; color: #000; font-weight: bold; border-radius: 8px; font-family: monospace;">
                         CLICCA PER ENTRARE NELL'ASCENSORE
@@ -807,7 +807,7 @@ PAGINA_WEB = """<!DOCTYPE html>
     <script id="embeddedSubtitles" type="text/vtt">{{ subtitulos_raw | safe }}</script>
 
     <script>
-        // --- AUDIO PROCEDURAL (INTERFAZ + PUERTAS + PASOS + CAJONES) ---
+        // --- AUDIO PROCEDURAL (INTERFAZ + PUERTAS + PASOS + CAJONES + MONSTRUO IA) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playAudio(type) {
@@ -868,7 +868,6 @@ PAGINA_WEB = """<!DOCTYPE html>
                 osc.stop(now + 0.6);
 
             } else if (type === 'creak') {
-                // Chirrido realista de puerta abriéndose
                 const osc = audioCtx.createOscillator();
                 const osc2 = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -942,6 +941,45 @@ PAGINA_WEB = """<!DOCTYPE html>
                 gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.15);
+
+            } else if (type === 'unlock') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(520, now + 0.08);
+                gain.gain.setValueAtTime(0.14, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.22);
+
+            } else if (type === 'monster') {
+                // Rugido aterrador de Rush acercándose
+                const osc = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc2.type = 'square';
+                osc.frequency.setValueAtTime(55, now);
+                osc.frequency.linearRampToValueAtTime(135, now + 1.4);
+                osc.frequency.linearRampToValueAtTime(42, now + 2.6);
+
+                osc2.frequency.setValueAtTime(61, now);
+                osc2.frequency.linearRampToValueAtTime(148, now + 1.4);
+                osc2.frequency.linearRampToValueAtTime(38, now + 2.6);
+
+                gain.gain.setValueAtTime(0.02, now);
+                gain.gain.linearRampToValueAtTime(0.24, now + 1.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 2.7);
+                osc.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc2.start(now);
+                osc.stop(now + 2.7);
+                osc2.stop(now + 2.7);
             }
         }
 
@@ -1113,16 +1151,19 @@ PAGINA_WEB = """<!DOCTYPE html>
         let doorsActive = false;
         let animFrameId = null;
 
-        // Jugador y cámara
-        let playerPos = new THREE.Vector3(0, 1.75, 5.8);
+        // Jugador, inventario y estados
+        let playerPos = new THREE.Vector3(0, 1.75, 6.2);
         let yaw = 0, pitch = 0;
         let keys = {};
         let walkTimer = 0;
         let stepSoundTimer = 0;
         let flashlightOn = true;
+        let battery = 100;
         let lockpicks = 0;
+        let isHiding = false;
+        let savedPosBeforeHide = new THREE.Vector3();
 
-        // Cinemática ascensor (B2 -> B1 -> LOBBY)
+        // Cinemática ascensor
         let elevatorPhase = true;
         let elevatorTimer = 0;
         let elevatorDingPlayed = false;
@@ -1133,21 +1174,30 @@ PAGINA_WEB = """<!DOCTYPE html>
         let elevatorFloorTex = null;
         let lastFloorText = "";
 
-        // Brazos y manos orgánicas 1ª persona (suaves, sin aspecto Minecraft)
+        // Brazos y manos orgánicas 1ª persona
         let leftArmGroup, rightArmGroup;
 
-        // Habitaciones grandes, colisiones, puertas y cajones
+        // Dimensiones amplias de salas, puertas y rango de memoria (5 puertas)
         const ROOM_LENGTH = 18;
         const ROOM_WIDTH = 14;
         const ROOM_HEIGHT = 5.2;
         const DOOR_WIDTH = 2.2;
         const DOOR_HEIGHT = 3.3;
-        const MAX_ACTIVE_ROOMS = 5; // Rango de producción: máximo 5 puertas/salas en memoria
+        const MAX_ACTIVE_ROOMS = 5;
 
         let roomsData = [];
         let highestRoomGenerated = -1;
         let currentRoomIndex = 0;
+        let rainSystems = []; // Gotas de lluvia animadas en las ventanas
 
+        // IA DEL MONSTRUO (RUSH)
+        let monsterMesh = null;
+        let monsterActive = false;
+        let monsterWarningTimer = 0;
+        let monsterZ = 0;
+        let monsterCooldown = 14;
+
+        // Texturas procedurales realistas
         function crearTexturaMadera() {
             const c = document.createElement('canvas');
             c.width = 256; c.height = 256;
@@ -1186,30 +1236,98 @@ PAGINA_WEB = """<!DOCTYPE html>
             return tex;
         }
 
-        function crearCartelNumero(numero) {
+        // PLACA DE NÚMERO ESTILO DOORS (MADERA TALLADA CON LETRAS BLANCAS/CREMA, NO AMARILLA)
+        function crearCartelMaderaDoors(numero) {
             const c = document.createElement('canvas');
             c.width = 256; c.height = 96;
             const ctx = c.getContext('2d');
-            ctx.fillStyle = '#1c1208';
+
+            // Fondo de madera oscura envejecida
+            ctx.fillStyle = '#2d160b';
             ctx.fillRect(0, 0, 256, 96);
-            ctx.strokeStyle = '#d4af37';
-            ctx.lineWidth = 6;
-            ctx.strokeRect(6, 6, 244, 84);
-            ctx.fillStyle = '#ffd700';
-            ctx.font = 'bold 46px monospace';
+
+            // Vetas de madera en el cartel
+            for (let y = 0; y < 96; y += 3) {
+                ctx.strokeStyle = 'rgba(15, 6, 2, 0.45)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(256, y + Math.sin(y * 0.2) * 3);
+                ctx.stroke();
+            }
+
+            // Marco tallado en madera clara/bronce envejecido
+            ctx.strokeStyle = '#7c5332';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(4, 4, 248, 88);
+            ctx.strokeStyle = '#180a04';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(10, 10, 236, 76);
+
+            // Número tallado en color marfil/blanco hueso (como en DOORS original)
+            ctx.fillStyle = '#efe6d5';
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.font = 'bold 46px Georgia, serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(String(numero).padStart(4, '0'), 128, 50);
+
             return new THREE.CanvasTexture(c);
         }
 
-        let matMadera, matAlfombra, matPared;
+        // TEXTURA DE CUADROS ARTÍSTICOS PARA EL VESTÍBULO
+        function crearTexturaCuadro(tipo) {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 320;
+            const ctx = c.getContext('2d');
+            if (tipo === 0) {
+                // Paisaje nocturno del hotel
+                const grad = ctx.createLinearGradient(0, 0, 0, 320);
+                grad.addColorStop(0, '#0a1428');
+                grad.addColorStop(1, '#1e2d42');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 256, 320);
+                ctx.fillStyle = '#e8eef5';
+                ctx.beginPath();
+                ctx.arc(185, 70, 26, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#090d14';
+                ctx.beginPath();
+                ctx.moveTo(0, 250);
+                ctx.lineTo(90, 140);
+                ctx.lineTo(170, 220);
+                ctx.lineTo(256, 150);
+                ctx.lineTo(256, 320);
+                ctx.lineTo(0, 320);
+                ctx.fill();
+            } else {
+                // Retrato clásico victoriano oscuro
+                ctx.fillStyle = '#24140e';
+                ctx.fillRect(0, 0, 256, 320);
+                ctx.fillStyle = '#111116';
+                ctx.beginPath();
+                ctx.ellipse(128, 255, 65, 85, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#c8a688';
+                ctx.beginPath();
+                ctx.ellipse(128, 135, 34, 44, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#181412';
+                ctx.fillRect(92, 85, 72, 22);
+            }
+            return new THREE.CanvasTexture(c);
+        }
+
+        let matMadera, matAlfombra, matPared, matHierroViejo, matOro;
 
         function initDoors3D() {
             const container = document.getElementById("doors3DContainer");
             scene3D = new THREE.Scene();
             scene3D.background = new THREE.Color(0x050508);
-            scene3D.fog = new THREE.FogExp2(0x050508, 0.024);
+            scene3D.fog = new THREE.FogExp2(0x050508, 0.022);
 
             camera3D = new THREE.PerspectiveCamera(72, container.clientWidth / container.clientHeight, 0.1, 100);
             scene3D.add(camera3D);
@@ -1223,12 +1341,13 @@ PAGINA_WEB = """<!DOCTYPE html>
             const texAlfombra = crearTexturaAlfombra();
             matMadera = new THREE.MeshStandardMaterial({ map: texMadera, bumpMap: texMadera, bumpScale: 0.03, roughness: 0.6 });
             matAlfombra = new THREE.MeshStandardMaterial({ map: texAlfombra, roughness: 0.9 });
-            matPared = new THREE.MeshStandardMaterial({ color: 0x2e2723, roughness: 0.85 });
+            matPared = new THREE.MeshStandardMaterial({ color: 0x332924, roughness: 0.85 });
+            matHierroViejo = new THREE.MeshStandardMaterial({ color: 0x2c2825, metalness: 0.8, roughness: 0.65 });
+            matOro = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
 
-            const ambLight = new THREE.AmbientLight(0x454555, 0.7);
+            const ambLight = new THREE.AmbientLight(0x4a4a5a, 0.75);
             scene3D.add(ambLight);
 
-            // Linterna ancha en 1ª persona
             flashlight = new THREE.SpotLight(0xfff5e0, 2.7, 34, Math.PI / 3.2, 0.45, 1.0);
             flashlight.position.set(0.25, -0.15, -0.2);
             flashlight.target.position.set(0, -0.15, -6);
@@ -1236,21 +1355,28 @@ PAGINA_WEB = """<!DOCTYPE html>
             camera3D.add(flashlight.target);
 
             crearBrazosOrganicos();
-            crearAscensorClasico();
+            crearAscensorRealista();
+            crearMonstruoIA();
 
             roomsData = [];
+            rainSystems = [];
             highestRoomGenerated = -1;
             for (let i = 0; i < MAX_ACTIVE_ROOMS; i++) {
                 generarHabitacion(i);
             }
 
-            playerPos.set(0, 1.75, 5.8);
+            playerPos.set(0, 1.75, 6.2);
             yaw = 0;
             pitch = 0;
             elevatorPhase = true;
             elevatorTimer = 0;
             elevatorDingPlayed = false;
             lockpicks = 0;
+            battery = 100;
+            isHiding = false;
+            monsterActive = false;
+            monsterWarningTimer = 0;
+            monsterCooldown = 14;
             actualizarHUD();
 
             if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
@@ -1258,7 +1384,6 @@ PAGINA_WEB = """<!DOCTYPE html>
             }
         }
 
-        // MANOS ESTILIZADAS Y REDONDEADAS (SIN BLOQUES CUADRADOS TIPO MINECRAFT)
         function crearBrazosOrganicos() {
             const matManga = new THREE.MeshStandardMaterial({ color: 0x1e242d, roughness: 0.75 });
             const matPiel = new THREE.MeshStandardMaterial({ color: 0xdca98a, roughness: 0.55 });
@@ -1266,18 +1391,15 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             function buildArm(conLinterna) {
                 const armGroup = new THREE.Group();
-                // Antebrazo cilíndrico suave
                 const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.058, 0.42, 16), matManga);
                 forearm.rotation.x = Math.PI / 2.15;
                 armGroup.add(forearm);
 
-                // Muñeca y palma redondeada
                 const palm = new THREE.Mesh(new THREE.SphereGeometry(0.048, 16, 16), matPiel);
                 palm.scale.set(0.95, 0.75, 1.25);
                 palm.position.set(0, 0.015, -0.23);
                 armGroup.add(palm);
 
-                // Dedos suaves curvados
                 for (let f = -1.5; f <= 1.5; f += 1) {
                     const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.011, 0.075, 10), matPiel);
                     finger.rotation.x = Math.PI / 2.6;
@@ -1306,17 +1428,17 @@ PAGINA_WEB = """<!DOCTYPE html>
             camera3D.add(rightArmGroup);
         }
 
-        // ASCENSOR CLÁSICO CON VISOR DIGITAL DE PISOS (B2 -> B1 -> LOBBY)
+        // ASCENSOR REALISTA DE HOTEL CON PANELES DE MADERA, PASAMANOS Y REJAS CON BARROTES
         function actualizarDisplayAscensor(texto) {
             if (!elevatorFloorCanvas || lastFloorText === texto) return;
             lastFloorText = texto;
             const ctx = elevatorFloorCanvas.getContext('2d');
             ctx.fillStyle = '#090d14';
             ctx.fillRect(0, 0, 256, 80);
-            ctx.strokeStyle = '#ffaa00';
+            ctx.strokeStyle = '#d4af37';
             ctx.lineWidth = 4;
             ctx.strokeRect(4, 4, 248, 72);
-            ctx.fillStyle = '#ffaa00';
+            ctx.fillStyle = '#ffaa22';
             ctx.font = 'bold 34px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1324,16 +1446,34 @@ PAGINA_WEB = """<!DOCTYPE html>
             if (elevatorFloorTex) elevatorFloorTex.needsUpdate = true;
         }
 
-        function crearAscensorClasico() {
+        function crearAscensorRealista() {
             elevatorGroup = new THREE.Group();
-            const matCabina = new THREE.MeshStandardMaterial({ color: 0x2a180d, roughness: 0.7, side: THREE.BackSide });
-            const matReja = new THREE.MeshStandardMaterial({ color: 0x3a404a, metalness: 0.75, roughness: 0.35 });
+            const matCabinaMadera = new THREE.MeshStandardMaterial({ map: crearTexturaMadera(), roughness: 0.5, side: THREE.BackSide });
+            const matRejaMetal = new THREE.MeshStandardMaterial({ color: 0x2b3038, metalness: 0.85, roughness: 0.3 });
 
-            const cabina = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.6, 3.0), matCabina);
-            cabina.position.set(0, 1.8, 5.8);
+            // Cabina de madera elegante
+            const cabina = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.8, 3.2), matCabinaMadera);
+            cabina.position.set(0, 1.9, 6.2);
             elevatorGroup.add(cabina);
 
-            // Visor de pisos encima de la puerta del ascensor
+            // Pasamanos de latón dorado dentro del ascensor
+            const railBack = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.0, 12), matOro);
+            railBack.rotation.z = Math.PI / 2;
+            railBack.position.set(0, 1.05, 7.72);
+            const railLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.8, 12), matOro);
+            railLeft.rotation.x = Math.PI / 2;
+            railLeft.position.set(-1.62, 1.05, 6.2);
+            const railRight = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.8, 12), matOro);
+            railRight.rotation.x = Math.PI / 2;
+            railRight.position.set(1.62, 1.05, 6.2);
+            elevatorGroup.add(railBack, railLeft, railRight);
+
+            // Plafón luminoso en el techo
+            const plafon = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 1.4), new THREE.MeshBasicMaterial({ color: 0xffe8b5 }));
+            plafon.position.set(0, 3.74, 6.2);
+            elevatorGroup.add(plafon);
+
+            // Visor de pisos
             elevatorFloorCanvas = document.createElement('canvas');
             elevatorFloorCanvas.width = 256;
             elevatorFloorCanvas.height = 80;
@@ -1341,24 +1481,181 @@ PAGINA_WEB = """<!DOCTYPE html>
             actualizarDisplayAscensor("▲ B2");
 
             const displayMesh = new THREE.Mesh(
-                new THREE.PlaneGeometry(1.1, 0.34),
+                new THREE.PlaneGeometry(1.2, 0.36),
                 new THREE.MeshBasicMaterial({ map: elevatorFloorTex })
             );
-            displayMesh.position.set(0, 3.15, 4.32);
+            displayMesh.position.set(0, 3.3, 4.62);
             elevatorGroup.add(displayMesh);
 
-            // Puertas corredizas metálicas del ascensor
-            elevatorDoorLeft = new THREE.Mesh(new THREE.BoxGeometry(1.4, 3.0, 0.1), matReja);
-            elevatorDoorLeft.position.set(-0.7, 1.5, 4.3);
-            elevatorDoorRight = new THREE.Mesh(new THREE.BoxGeometry(1.4, 3.0, 0.1), matReja);
-            elevatorDoorRight.position.set(0.7, 1.5, 4.3);
+            // Puertas de reja metálica con barrotes reales
+            function crearHojaReja() {
+                const hoja = new THREE.Group();
+                const marco = new THREE.Mesh(new THREE.BoxGeometry(1.45, 3.1, 0.08), matRejaMetal);
+                hoja.add(marco);
+                for (let bx = -0.55; bx <= 0.55; bx += 0.22) {
+                    const barrote = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 2.9, 8), matOro);
+                    barrote.position.set(bx, 0, 0.05);
+                    hoja.add(barrote);
+                }
+                return hoja;
+            }
+
+            elevatorDoorLeft = crearHojaReja();
+            elevatorDoorLeft.position.set(-0.72, 1.55, 4.6);
+            elevatorDoorRight = crearHojaReja();
+            elevatorDoorRight.position.set(0.72, 1.55, 4.6);
             elevatorGroup.add(elevatorDoorLeft, elevatorDoorRight);
 
-            const luzAscensor = new THREE.PointLight(0xffb86c, 1.8, 8);
-            luzAscensor.position.set(0, 3.1, 5.8);
+            const luzAscensor = new THREE.PointLight(0xffc978, 2.0, 9);
+            luzAscensor.position.set(0, 3.4, 6.2);
             elevatorGroup.add(luzAscensor);
 
             scene3D.add(elevatorGroup);
+        }
+
+        // CONSTRUIR CANDADO VIEJO DE HIERRO FORJADO PARA PUERTAS CERRADAS
+        function crearCandadoViejo() {
+            const lockGroup = new THREE.Group();
+            // Cuerpo pesado del candado
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.28, 0.09), matHierroViejo);
+            lockGroup.add(body);
+
+            // Arco superior de acero oxidado
+            const shackle = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.022, 8, 16, Math.PI), matHierroViejo);
+            shackle.position.set(0, 0.14, 0);
+            lockGroup.add(shackle);
+
+            // Bocallave oscura en el centro
+            const keyhole = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.08, 0.1), new THREE.MeshBasicMaterial({ color: 0x050505 }));
+            keyhole.position.set(0, -0.02, 0.01);
+            lockGroup.add(keyhole);
+
+            return lockGroup;
+        }
+
+        // CREAR VENTANA NOCTURNA CON LUNA LLENA Y LLUVIA ANIMADA
+        function crearVentanaNocheLluvia(x, y, z, rotY) {
+            const winGroup = new THREE.Group();
+            winGroup.position.set(x, y, z);
+            winGroup.rotation.y = rotY;
+
+            // Fondo cielo nocturno profundo
+            const sky = new THREE.Mesh(
+                new THREE.PlaneGeometry(3.2, 2.8),
+                new THREE.MeshBasicMaterial({ color: 0x070d1c })
+            );
+            sky.position.z = -0.04;
+            winGroup.add(sky);
+
+            // Luna llena brillante con halo
+            const moon = new THREE.Mesh(
+                new THREE.CircleGeometry(0.36, 24),
+                new THREE.MeshBasicMaterial({ color: 0xf4f7ff })
+            );
+            moon.position.set(0.75, 0.72, -0.03);
+            winGroup.add(moon);
+
+            // Marco de madera de la ventana (4 bordes + cruz central)
+            const topBar = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.18, 0.14), matMadera);
+            topBar.position.y = 1.4;
+            const botBar = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.22, 0.18), matMadera);
+            botBar.position.y = -1.4;
+            const leftBar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.9, 0.14), matMadera);
+            leftBar.position.x = -1.6;
+            const rightBar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.9, 0.14), matMadera);
+            rightBar.position.x = 1.6;
+            const midV = new THREE.Mesh(new THREE.BoxGeometry(0.09, 2.8, 0.1), matMadera);
+            const midH = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.09, 0.1), matMadera);
+            winGroup.add(topBar, botBar, leftBar, rightBar, midV, midH);
+
+            // Gotas de lluvia cayendo detrás del cristal
+            const rainDrops = [];
+            const matGota = new THREE.MeshBasicMaterial({ color: 0x7aa4d4, transparent: true, opacity: 0.65 });
+            for (let r = 0; r < 28; r++) {
+                const drop = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.22, 0.01), matGota);
+                drop.position.set((Math.random() - 0.5) * 3.0, (Math.random() - 0.5) * 2.5, -0.015);
+                winGroup.add(drop);
+                rainDrops.push(drop);
+            }
+            rainSystems.push(rainDrops);
+
+            return winGroup;
+        }
+
+        // DECORACIÓN ULTRA REALISTA EXCLUSIVA PARA EL VESTÍBULO (LOBBY)
+        function decorarVestibulo(roomGroup, wallBoxes, zCenter) {
+            // 1. Mostrador de Recepción de madera tallada a la izquierda
+            const deskGroup = new THREE.Group();
+            deskGroup.position.set(-4.8, 0, zCenter - 1.5);
+
+            const counterBase = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.15, 5.2), matMadera);
+            counterBase.position.y = 0.575;
+            const counterTop = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 5.4), matOro);
+            counterTop.position.y = 1.18;
+            deskGroup.add(counterBase, counterTop);
+
+            // Campana dorada de recepción
+            const bell = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 14), matOro);
+            bell.position.set(0.4, 1.28, 0.6);
+            deskGroup.add(bell);
+
+            // Lámpara de escritorio cálida
+            const lampStand = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.12, 0.45, 12), matOro);
+            lampStand.position.set(0.3, 1.42, -1.2);
+            const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.22, 16), new THREE.MeshStandardMaterial({ color: 0x165b33, emissive: 0x0b331b }));
+            lampShade.position.set(0.3, 1.65, -1.2);
+            deskGroup.add(lampStand, lampShade);
+
+            roomGroup.add(deskGroup);
+            wallBoxes.push(new THREE.Box3().setFromCenterAndSize(
+                new THREE.Vector3(-4.8, 0.6, zCenter - 1.5),
+                new THREE.Vector3(1.8, 1.3, 5.4)
+            ));
+
+            // 2. Sofás de terciopelo rojo a la derecha
+            const matSofa = new THREE.MeshStandardMaterial({ color: 0x5c1118, roughness: 0.7 });
+            [-2.5, 2.2].forEach((offsetZ) => {
+                const sofa = new THREE.Group();
+                sofa.position.set(4.8, 0, zCenter + offsetZ);
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.45, 2.6), matSofa);
+                seat.position.y = 0.25;
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.05, 2.6), matSofa);
+                back.position.set(0.55, 0.55, 0);
+                sofa.add(seat, back);
+                roomGroup.add(sofa);
+                wallBoxes.push(new THREE.Box3().setFromCenterAndSize(
+                    new THREE.Vector3(4.8, 0.5, zCenter + offsetZ),
+                    new THREE.Vector3(1.5, 1.1, 2.7)
+                ));
+            });
+
+            // 3. Cuadros con marcos dorados en las paredes del vestíbulo
+            const texCuadro0 = crearTexturaCuadro(0);
+            const texCuadro1 = crearTexturaCuadro(1);
+            const cuadrosConfig = [
+                { x: -ROOM_WIDTH / 2 + 0.24, y: 2.7, z: zCenter - 2.0, rotY: Math.PI / 2, tex: texCuadro0 },
+                { x: -ROOM_WIDTH / 2 + 0.24, y: 2.7, z: zCenter + 2.5, rotY: Math.PI / 2, tex: texCuadro1 },
+                { x: ROOM_WIDTH / 2 - 0.24, y: 2.7, z: zCenter - 2.5, rotY: -Math.PI / 2, tex: texCuadro1 },
+                { x: ROOM_WIDTH / 2 - 0.24, y: 2.7, z: zCenter + 2.2, rotY: -Math.PI / 2, tex: texCuadro0 }
+            ];
+
+            cuadrosConfig.forEach((c) => {
+                const frameGroup = new THREE.Group();
+                frameGroup.position.set(c.x, c.y, c.z);
+                frameGroup.rotation.y = c.rotY;
+                const border = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.1, 0.08), matOro);
+                const canvasMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 1.88), new THREE.MeshBasicMaterial({ map: c.tex }));
+                canvasMesh.position.z = 0.045;
+                frameGroup.add(border, canvasMesh);
+                roomGroup.add(frameGroup);
+            });
+
+            // 4. Columnas arquitectónicas en las esquinas
+            [[-6.3, -8.2], [6.3, -8.2], [-6.3, 8.2], [6.3, 8.2]].forEach(([cx, cz]) => {
+                const col = new THREE.Mesh(new THREE.BoxGeometry(0.65, ROOM_HEIGHT, 0.65), matMadera);
+                col.position.set(cx, ROOM_HEIGHT / 2, zCenter + cz);
+                roomGroup.add(col);
+            });
         }
 
         function generarHabitacion(index) {
@@ -1369,9 +1666,10 @@ PAGINA_WEB = """<!DOCTYPE html>
             const roomGroup = new THREE.Group();
             const wallBoxes = [];
             const drawers = [];
+            const closets = [];
             const lights = [];
 
-            // Suelo y Techo amplios (14m x 18m)
+            // Suelo y Techo
             const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_LENGTH), matAlfombra);
             floor.rotation.x = -Math.PI / 2;
             floor.position.set(0, 0, zCenter);
@@ -1382,7 +1680,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             ceiling.position.set(0, ROOM_HEIGHT, zCenter);
             roomGroup.add(ceiling);
 
-            // Paredes laterales con colisión
+            // Paredes laterales
             const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, ROOM_HEIGHT, ROOM_LENGTH), matPared);
             leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, zCenter);
             roomGroup.add(leftWall);
@@ -1399,9 +1697,16 @@ PAGINA_WEB = """<!DOCTYPE html>
                 backWall.position.set(0, ROOM_HEIGHT / 2, zBackWall);
                 roomGroup.add(backWall);
                 wallBoxes.push(new THREE.Box3().setFromObject(backWall));
+                decorarVestibulo(roomGroup, wallBoxes, zCenter);
+            } else {
+                // En habitaciones normales: Ventanas nocturnas con luna llena y lluvia
+                const winSide = (index % 2 === 0) ? 1 : -1;
+                const winX = winSide * (ROOM_WIDTH / 2 - 0.22);
+                const winRot = (winSide === 1) ? (-Math.PI / 2) : (Math.PI / 2);
+                roomGroup.add(crearVentanaNocheLluvia(winX, 2.7, zCenter + 1.2, winRot));
             }
 
-            // Pared frontal con hueco para puerta amplia (2.2m x 3.3m)
+            // Pared frontal con hueco de puerta
             const sideWallW = (ROOM_WIDTH - DOOR_WIDTH) / 2;
             const frontLeft = new THREE.Mesh(new THREE.BoxGeometry(sideWallW, ROOM_HEIGHT, 0.4), matPared);
             frontLeft.position.set(-(DOOR_WIDTH / 2 + sideWallW / 2), ROOM_HEIGHT / 2, zFrontWall);
@@ -1417,7 +1722,7 @@ PAGINA_WEB = """<!DOCTYPE html>
             frontTop.position.set(0, DOOR_HEIGHT + (ROOM_HEIGHT - DOOR_HEIGHT) / 2, zFrontWall);
             roomGroup.add(frontTop);
 
-            // --- PUERTA CON BISAGRA REAL, ANIMACIÓN Y COLISIÓN ---
+            // --- PUERTA CON BISAGRA REAL, CARTEL DE MADERA DOORS Y CANDADO VIEJO ---
             const doorPivot = new THREE.Group();
             doorPivot.position.set(-DOOR_WIDTH / 2, 0, zFrontWall);
 
@@ -1425,27 +1730,33 @@ PAGINA_WEB = """<!DOCTYPE html>
             doorMesh.position.set(DOOR_WIDTH / 2, DOOR_HEIGHT / 2, 0);
             doorPivot.add(doorMesh);
 
-            const matDorado = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.85, roughness: 0.2 });
-            const doorKnob = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), matDorado);
+            const doorKnob = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), matOro);
             doorKnob.position.set(DOOR_WIDTH - 0.25, 1.45, 0.12);
             doorPivot.add(doorKnob);
 
+            // Placa numerada de MADERA estilo DOORS (no amarilla)
             const signMesh = new THREE.Mesh(
-                new THREE.PlaneGeometry(1.1, 0.4),
-                new THREE.MeshBasicMaterial({ map: crearCartelNumero(index + 1) })
+                new THREE.PlaneGeometry(1.15, 0.42),
+                new THREE.MeshBasicMaterial({ map: crearCartelMaderaDoors(index + 1) })
             );
             signMesh.position.set(0, DOOR_HEIGHT + 0.42, zFrontWall + 0.22);
             roomGroup.add(signMesh);
 
+            // Algunas puertas tienen candado viejo real
+            const isLocked = index >= 2 && Math.random() < 0.28;
+            let padlockMesh = null;
+            if (isLocked) {
+                padlockMesh = crearCandadoViejo();
+                padlockMesh.position.set(DOOR_WIDTH - 0.25, 1.24, 0.15);
+                doorPivot.add(padlockMesh);
+            }
+
             roomGroup.add(doorPivot);
 
-            // Caja de colisión sólida de la puerta mientras está cerrada
             const doorBox = new THREE.Box3(
                 new THREE.Vector3(-DOOR_WIDTH / 2 - 0.1, 0, zFrontWall - 0.3),
                 new THREE.Vector3(DOOR_WIDTH / 2 + 0.1, DOOR_HEIGHT, zFrontWall + 0.3)
             );
-
-            const isLocked = index >= 2 && Math.random() < 0.25;
 
             // --- ILUMINACIÓN DE LA HABITACIÓN ---
             let lit = true;
@@ -1453,44 +1764,89 @@ PAGINA_WEB = """<!DOCTYPE html>
                 lit = (index % 15 === 0) ? (Math.random() < 0.25) : (Math.random() < 0.65);
             }
             if (lit) {
-                const intensity = index === 0 ? 2.4 : 1.9;
-                const roomLight = new THREE.PointLight(0xffdfa8, intensity, 24);
+                const intensity = index === 0 ? 2.5 : 1.9;
+                const roomLight = new THREE.PointLight(0xffdfa8, intensity, 25);
                 roomLight.position.set(0, ROOM_HEIGHT - 0.4, zCenter);
                 roomGroup.add(roomLight);
                 lights.push(roomLight);
             }
 
-            // --- MUEBLES CON CAJONES BIEN ORIENTADOS Y COLISIÓN ---
+            // --- CÓMODA CON CAJÓN HUECO REAL Y OBJETO ULTRA DETALLADO DENTRO ---
             const side = (index % 2 === 0) ? -1 : 1;
             const tableX = side * (ROOM_WIDTH / 2 - 0.85);
-            const tableZ = zCenter - 1.5;
+            const tableZ = zCenter - 2.2;
 
             const deskGroup = new THREE.Group();
             deskGroup.position.set(tableX, 0, tableZ);
-            // Si está a la pared derecha (+1), rota -90° para que su frente (+Z) apunte a la izquierda (-X, al pasillo)
-            // Si está a la pared izquierda (-1), rota +90° para que su frente (+Z) apunte a la derecha (+X, al pasillo)
             deskGroup.rotation.y = (side === -1) ? (Math.PI / 2) : (-Math.PI / 2);
 
-            const tableBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.0, 0.85), matMadera);
-            tableBody.position.y = 0.5;
-            deskGroup.add(tableBody);
+            // Estructura de la cómoda con hueco superior para el cajón
+            const baseBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.58, 0.85), matMadera);
+            baseBody.position.y = 0.29;
+            const topBoard = new THREE.Mesh(new THREE.BoxGeometry(1.86, 0.08, 0.9), matMadera);
+            topBoard.position.y = 0.96;
+            const sideL = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.36, 0.85), matMadera);
+            sideL.position.set(-0.83, 0.76, 0);
+            const sideR = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.36, 0.85), matMadera);
+            sideR.position.set(0.83, 0.76, 0);
+            deskGroup.add(baseBody, topBoard, sideL, sideR);
 
+            // Cajón hueco real (4 paredes + fondo oscuro + perilla)
             const drawerGroup = new THREE.Group();
-            drawerGroup.position.set(0, 0.74, 0.05);
+            drawerGroup.position.set(0, 0.75, 0.04);
 
-            const drawerBoxMesh = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.26, 0.76), matMadera);
-            drawerGroup.add(drawerBoxMesh);
+            const matInteriorOscuro = new THREE.MeshStandardMaterial({ color: 0x160903, roughness: 0.9 });
+            const dBottom = new THREE.Mesh(new THREE.BoxGeometry(1.48, 0.04, 0.74), matInteriorOscuro);
+            dBottom.position.y = -0.12;
+            const dFront = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.28, 0.05), matMadera);
+            dFront.position.z = 0.36;
+            const dBack = new THREE.Mesh(new THREE.BoxGeometry(1.48, 0.24, 0.04), matInteriorOscuro);
+            dBack.position.z = -0.35;
+            const dWallL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.24, 0.72), matInteriorOscuro);
+            dWallL.position.x = -0.72;
+            const dWallR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.24, 0.72), matInteriorOscuro);
+            dWallR.position.x = 0.72;
+            drawerGroup.add(dBottom, dFront, dBack, dWallL, dWallR);
 
-            // Perilla mirando exactamente hacia el centro de la habitación
-            const drawerKnob = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), matDorado);
-            drawerKnob.position.set(0, 0, 0.42);
+            const drawerKnob = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), matOro);
+            drawerKnob.position.set(0, 0, 0.41);
             drawerGroup.add(drawerKnob);
 
-            const hasLoot = Math.random() < 0.65;
+            // Objeto ultra detallado dentro del hueco del cajón (Ganzúa o Batería)
+            const lootRoll = Math.random();
+            let lootType = null;
             let lootMesh = null;
-            if (hasLoot) {
-                lootMesh = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.045, 0.09), matDorado);
-                lootMesh.position.set(0, 0.06, 0.14);
+            if (lootRoll < 0.72) {
+                lootMesh = new THREE.Group();
+                lootMesh.position.set(0, -0.05, 0.08);
+                if (lootRoll < 0.40) {
+                    // Ganzúa ultra detallada (anillo + vástago + dientes de acero)
+                    lootType = 'lockpick';
+                    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.014, 8, 16), matOro);
+                    ring.rotation.x = Math.PI / 2;
+                    ring.position.x = -0.12;
+                    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.24, 10), matOro);
+                    shaft.rotation.z = Math.PI / 2;
+                    shaft.position.x = 0.04;
+                    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.015, 0.04), matOro);
+                    tooth.position.set(0.14, 0, 0.025);
+                    lootMesh.add(ring, shaft, tooth);
+                } else {
+                    // Batería/Pila ultra detallada (cuerpo azul/negro + polo cobrizo)
+                    lootType = 'battery';
+                    const batBody = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.042, 0.042, 0.16, 16),
+                        new THREE.MeshStandardMaterial({ color: 0x114488, metalness: 0.6, roughness: 0.3 })
+                    );
+                    batBody.rotation.z = Math.PI / 2;
+                    const batCap = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.042, 0.042, 0.04, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xd97724, metalness: 0.85, roughness: 0.2 })
+                    );
+                    batCap.rotation.z = Math.PI / 2;
+                    batCap.position.x = 0.09;
+                    lootMesh.add(batBody, batCap);
+                }
                 drawerGroup.add(lootMesh);
             }
 
@@ -1505,21 +1861,27 @@ PAGINA_WEB = """<!DOCTYPE html>
 
             drawers.push({
                 group: drawerGroup,
-                worldPos: new THREE.Vector3(tableX, 0.74, tableZ),
+                worldPos: new THREE.Vector3(tableX, 0.75, tableZ),
                 open: false,
-                targetZ: 0.05,
-                hasLoot: hasLoot,
+                targetZ: 0.04,
+                lootType: lootType,
                 lootTaken: false,
                 lootMesh: lootMesh
             });
 
-            // Armario grande en el lado opuesto con colisión
+            // --- ARMARIO PARA ESCONDERSE DE LA IA DEL MONSTRUO ---
             const closetX = -side * (ROOM_WIDTH / 2 - 0.85);
-            const closetZ = zCenter + 2.0;
-            const closetMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.8, 1.7), matMadera);
-            closetMesh.position.set(closetX, 1.4, closetZ);
+            const closetZ = zCenter + 2.8;
+            const closetMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.9, 1.8), matMadera);
+            closetMesh.position.set(closetX, 1.45, closetZ);
             roomGroup.add(closetMesh);
             wallBoxes.push(new THREE.Box3().setFromObject(closetMesh));
+
+            closets.push({
+                worldPos: new THREE.Vector3(closetX, 1.5, closetZ),
+                hidePos: new THREE.Vector3(closetX - side * 0.2, 1.75, closetZ),
+                lookYaw: (side === 1) ? (-Math.PI / 2) : (Math.PI / 2)
+            });
 
             scene3D.add(roomGroup);
 
@@ -1532,15 +1894,109 @@ PAGINA_WEB = """<!DOCTYPE html>
                 doorTargetRot: 0,
                 doorBox: doorBox,
                 locked: isLocked,
+                padlockMesh: padlockMesh,
                 wallBoxes: wallBoxes,
                 drawers: drawers,
+                closets: closets,
                 lights: lights
             });
 
             if (index > highestRoomGenerated) highestRoomGenerated = index;
         }
 
-        // RANGO DE PRODUCCIÓN Y LIMPIEZA DE MEMORIA (SI AVANZA 5 PUERTAS, DESAPARECEN LAS ANTERIORES)
+        // --- IA DEL MONSTRUO (RUSH) ---
+        function crearMonstruoIA() {
+            monsterMesh = new THREE.Group();
+            const core = new THREE.Mesh(
+                new THREE.SphereGeometry(1.1, 16, 16),
+                new THREE.MeshBasicMaterial({ color: 0x050508 })
+            );
+            const aura = new THREE.Mesh(
+                new THREE.SphereGeometry(1.45, 16, 16),
+                new THREE.MeshBasicMaterial({ color: 0x1a0508, transparent: true, opacity: 0.55 })
+            );
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2244 });
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 10), eyeMat);
+            eyeL.position.set(-0.38, 0.25, 0.98);
+            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 10), eyeMat);
+            eyeR.position.set(0.38, 0.25, 0.98);
+
+            const mLight = new THREE.PointLight(0xff1133, 3.5, 18);
+            monsterMesh.add(core, aura, eyeL, eyeR, mLight);
+            monsterMesh.visible = false;
+            scene3D.add(monsterMesh);
+        }
+
+        function activarAtaqueMonstruo() {
+            if (monsterActive || monsterWarningTimer > 0) return;
+            monsterWarningTimer = 3.2; // 3.2 segundos de aviso parpadeando luces
+            playAudio('monster');
+            actualizarHUD("⚠️ ¡LAS LUCES PARPADEAN! ¡ESCÓNDETE EN UN ARMARIO!");
+        }
+
+        function actualizarIAMonstruo(dt) {
+            if (elevatorPhase) return;
+
+            // Temporizador para invocar al monstruo cuando ya pasaste la puerta 2
+            if (!monsterActive && monsterWarningTimer <= 0 && currentRoomIndex >= 2) {
+                monsterCooldown -= dt;
+                if (monsterCooldown <= 0) {
+                    monsterCooldown = 22 + Math.random() * 14;
+                    activarAtaqueMonstruo();
+                }
+            }
+
+            // Fase 1: Aviso con parpadeo violento de luces
+            if (monsterWarningTimer > 0) {
+                monsterWarningTimer -= dt;
+                const flicker = Math.random() > 0.45;
+                for (const r of roomsData) {
+                    for (const l of r.lights) l.visible = flicker;
+                }
+                if (flashlightOn) flashlight.visible = flicker;
+
+                if (monsterWarningTimer <= 0) {
+                    // Lanza al monstruo desde atrás hacia adelante
+                    for (const r of roomsData) {
+                        for (const l of r.lights) l.visible = true;
+                    }
+                    if (flashlightOn) flashlight.visible = true;
+
+                    monsterActive = true;
+                    monsterZ = playerPos.z + 32;
+                    monsterMesh.position.set(0, 1.8, monsterZ);
+                    monsterMesh.visible = true;
+                }
+            }
+
+            // Fase 2: El monstruo cruza las salas a toda velocidad
+            if (monsterActive) {
+                monsterZ -= 26 * dt;
+                monsterMesh.position.z = monsterZ;
+                monsterMesh.position.x = Math.sin(monsterZ * 0.8) * 1.2;
+
+                // Comprobar si atrapa al jugador (si NO está escondido en un armario)
+                if (!isHiding && Math.abs(monsterZ - playerPos.z) < 2.2) {
+                    monsterActive = false;
+                    monsterMesh.visible = false;
+                    playAudio('error');
+                    // Reinicio al vestíbulo
+                    playerPos.set(0, 1.75, 2.0);
+                    yaw = 0;
+                    actualizarHUD("💀 Te atrapó el monstruo. Volviste a la Lobby.");
+                    return;
+                }
+
+                // Cuando ya pasó lejos por delante, desaparece
+                if (monsterZ < playerPos.z - 45) {
+                    monsterActive = false;
+                    monsterMesh.visible = false;
+                    actualizarHUD("El monstruo se alejó... Puedes salir.");
+                }
+            }
+        }
+
+        // RANGO DE PRODUCCIÓN Y LIMPIEZA DE MEMORIA (5 PUERTAS)
         function gestionarRangoProduccion() {
             const calcRoom = Math.max(0, Math.floor((-playerPos.z + ROOM_LENGTH / 2) / ROOM_LENGTH));
             if (calcRoom !== currentRoomIndex) {
@@ -1579,16 +2035,41 @@ PAGINA_WEB = """<!DOCTYPE html>
         function interactuar() {
             if (elevatorPhase) return;
 
+            // Salir del armario si ya está escondido
+            if (isHiding) {
+                isHiding = false;
+                playerPos.copy(savedPosBeforeHide);
+                playAudio('creak');
+                actualizarHUD("Saliste del armario");
+                return;
+            }
+
             for (const room of roomsData) {
+                // 1. Esconderse en un armario
+                for (const c of room.closets) {
+                    if (playerPos.distanceTo(c.worldPos) < 2.8) {
+                        isHiding = true;
+                        savedPosBeforeHide.copy(playerPos);
+                        playerPos.copy(c.hidePos);
+                        yaw = c.lookYaw;
+                        playAudio('creak');
+                        actualizarHUD("Escondido en el armario ([E / Clic] para salir)");
+                        return;
+                    }
+                }
+
+                // 2. Abrir puerta (con candado viejo si está cerrada)
                 const doorCenter = new THREE.Vector3(0, 1.6, room.zFrontWall);
                 if (!room.doorOpen && playerPos.distanceTo(doorCenter) < 3.0) {
                     if (room.locked) {
                         if (lockpicks > 0) {
                             lockpicks--;
                             room.locked = false;
-                            actualizarHUD("Cerradura forzada con ganzúa");
+                            if (room.padlockMesh) room.padlockMesh.visible = false;
+                            playAudio('unlock');
+                            actualizarHUD("Candado abierto con ganzúa");
                         } else {
-                            actualizarHUD("Puerta cerrada con llave (Busca una ganzúa en los cajones)");
+                            actualizarHUD("Puerta con candado viejo (Busca una ganzúa en los cajones)");
                             return;
                         }
                     }
@@ -1599,21 +2080,27 @@ PAGINA_WEB = """<!DOCTYPE html>
                     return;
                 }
 
+                // 3. Abrir cajón hueco y recoger objeto dentro
                 for (const d of room.drawers) {
                     if (playerPos.distanceTo(d.worldPos) < 2.8) {
                         if (!d.open) {
                             d.open = true;
-                            d.targetZ = 0.48;
+                            d.targetZ = 0.50;
                             playAudio('drawer');
-                        } else if (d.hasLoot && !d.lootTaken) {
+                        } else if (d.lootType && !d.lootTaken) {
                             d.lootTaken = true;
                             if (d.lootMesh) d.lootMesh.visible = false;
-                            lockpicks++;
                             playAudio('pickup');
-                            actualizarHUD("¡Recogiste una Ganzúa!");
+                            if (d.lootType === 'lockpick') {
+                                lockpicks++;
+                                actualizarHUD("¡Recogiste una Ganzúa!");
+                            } else if (d.lootType === 'battery') {
+                                battery = Math.min(100, battery + 45);
+                                actualizarHUD("¡Recogiste una Batería (+45%)!");
+                            }
                         } else {
                             d.open = false;
-                            d.targetZ = 0.05;
+                            d.targetZ = 0.04;
                             playAudio('drawer');
                         }
                         return;
@@ -1624,14 +2111,22 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         function actualizarHUD(statusMsg) {
             document.getElementById("hudRoom").innerText = `STANZA: ${String(currentRoomIndex).padStart(4, '0')}`;
-            document.getElementById("hudInv").innerText = `🔑 Grimaldelli: ${lockpicks} | 🔦 Torcia: ${flashlightOn ? 'ON' : 'OFF'}`;
+            document.getElementById("hudInv").innerText = `🔑 Grimaldelli: ${lockpicks} | 🔋 Batteria: ${Math.ceil(battery)}% | 🔦 Torcia: ${flashlightOn ? 'ON' : 'OFF'}`;
             if (statusMsg) {
                 document.getElementById("hudStatus").innerText = statusMsg;
             }
         }
 
         function updateDoors3D(dt) {
-            // 1. Cinemática clásica del ascensor (B2 -> B1 -> LOBBY)
+            // Animar lluvia en las ventanas nocturnas
+            for (const drops of rainSystems) {
+                for (const drop of drops) {
+                    drop.position.y -= 4.8 * dt;
+                    if (drop.position.y < -1.3) drop.position.y = 1.3;
+                }
+            }
+
+            // 1. Cinemática inicial del ascensor
             if (elevatorPhase) {
                 elevatorTimer += dt;
                 if (elevatorTimer < 0.9) {
@@ -1653,7 +2148,7 @@ PAGINA_WEB = """<!DOCTYPE html>
                         elevatorDingPlayed = true;
                         playAudio('ding');
                     }
-                    if (elevatorDoorLeft.position.x > -1.8) {
+                    if (elevatorDoorLeft.position.x > -1.85) {
                         elevatorDoorLeft.position.x -= 1.3 * dt;
                         elevatorDoorRight.position.x += 1.3 * dt;
                     } else {
@@ -1664,34 +2159,47 @@ PAGINA_WEB = """<!DOCTYPE html>
                 return;
             }
 
-            // 2. Movimiento con colisión
-            const speed = 5.2 * dt;
-            const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
-            const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-            let moveVec = new THREE.Vector3();
-
-            if (keys['KeyW'] || keys['ArrowUp']) moveVec.add(forward);
-            if (keys['KeyS'] || keys['ArrowDown']) moveVec.sub(forward);
-            if (keys['KeyD'] || keys['ArrowRight']) moveVec.add(right);
-            if (keys['KeyA'] || keys['ArrowLeft']) moveVec.sub(right);
-
-            const isMoving = moveVec.lengthSq() > 0;
-            if (isMoving) {
-                moveVec.normalize().multiplyScalar(speed);
-                const tryX = playerPos.clone().add(new THREE.Vector3(moveVec.x, 0, 0));
-                if (!checkCollision(tryX)) playerPos.x = tryX.x;
-
-                const tryZ = playerPos.clone().add(new THREE.Vector3(0, 0, moveVec.z));
-                if (!checkCollision(tryZ)) playerPos.z = tryZ.z;
-
-                walkTimer += dt * 9;
-                stepSoundTimer += dt;
-                if (stepSoundTimer > 0.44) {
-                    stepSoundTimer = 0;
-                    playAudio('step');
+            // Consumo suave de batería de la linterna
+            if (flashlightOn && battery > 0) {
+                battery = Math.max(0, battery - 0.35 * dt);
+                flashlight.intensity = 1.2 + (battery / 100) * 1.6;
+                if (battery === 0) {
+                    flashlightOn = false;
+                    flashlight.visible = false;
                 }
-            } else {
-                walkTimer = 0;
+            }
+
+            // 2. Movimiento con colisión (si no está escondido en armario)
+            let isMoving = false;
+            if (!isHiding) {
+                const speed = 5.2 * dt;
+                const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+                const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+                let moveVec = new THREE.Vector3();
+
+                if (keys['KeyW'] || keys['ArrowUp']) moveVec.add(forward);
+                if (keys['KeyS'] || keys['ArrowDown']) moveVec.sub(forward);
+                if (keys['KeyD'] || keys['ArrowRight']) moveVec.add(right);
+                if (keys['KeyA'] || keys['ArrowLeft']) moveVec.sub(right);
+
+                isMoving = moveVec.lengthSq() > 0;
+                if (isMoving) {
+                    moveVec.normalize().multiplyScalar(speed);
+                    const tryX = playerPos.clone().add(new THREE.Vector3(moveVec.x, 0, 0));
+                    if (!checkCollision(tryX)) playerPos.x = tryX.x;
+
+                    const tryZ = playerPos.clone().add(new THREE.Vector3(0, 0, moveVec.z));
+                    if (!checkCollision(tryZ)) playerPos.z = tryZ.z;
+
+                    walkTimer += dt * 9;
+                    stepSoundTimer += dt;
+                    if (stepSoundTimer > 0.44) {
+                        stepSoundTimer = 0;
+                        playAudio('step');
+                    }
+                } else {
+                    walkTimer = 0;
+                }
             }
 
             const bobY = isMoving ? Math.sin(walkTimer * 2) * 0.045 : 0;
@@ -1701,44 +2209,63 @@ PAGINA_WEB = """<!DOCTYPE html>
             camera3D.rotation.x = pitch;
 
             if (leftArmGroup && rightArmGroup) {
+                leftArmGroup.visible = !isHiding;
+                rightArmGroup.visible = !isHiding;
                 leftArmGroup.position.y = -0.29 + (isMoving ? Math.sin(walkTimer) * 0.022 : 0);
                 rightArmGroup.position.y = -0.29 + (isMoving ? -Math.sin(walkTimer) * 0.022 : 0);
             }
 
-            // 3. Animación de apertura de puertas y cajones
+            // 3. Animación de apertura de puertas, cajones y avisos
             let promptVisible = false;
             const promptEl = document.getElementById("promptText");
 
-            for (const room of roomsData) {
-                if (Math.abs(room.doorPivot.rotation.y - room.doorTargetRot) > 0.005) {
-                    room.doorPivot.rotation.y += (room.doorTargetRot - room.doorPivot.rotation.y) * 6 * dt;
-                }
+            if (isHiding) {
+                promptVisible = true;
+                promptEl.innerText = "[E / Clic] Esci dall'armadio";
+            } else {
+                for (const room of roomsData) {
+                    if (Math.abs(room.doorPivot.rotation.y - room.doorTargetRot) > 0.005) {
+                        room.doorPivot.rotation.y += (room.doorTargetRot - room.doorPivot.rotation.y) * 6 * dt;
+                    }
 
-                const doorCenter = new THREE.Vector3(0, 1.6, room.zFrontWall);
-                if (!room.doorOpen && playerPos.distanceTo(doorCenter) < 3.0) {
-                    promptVisible = true;
-                    promptEl.innerText = room.locked
-                        ? `[E / Clic] Forzare Porta ${String(room.index + 1).padStart(4, '0')} (Serve 1 Grimaldello)`
-                        : `[E / Clic] Apri Porta ${String(room.index + 1).padStart(4, '0')}`;
-                }
-
-                for (const d of room.drawers) {
-                    d.group.position.z += (d.targetZ - d.group.position.z) * 10 * dt;
-
-                    if (playerPos.distanceTo(d.worldPos) < 2.8) {
+                    const doorCenter = new THREE.Vector3(0, 1.6, room.zFrontWall);
+                    if (!room.doorOpen && playerPos.distanceTo(doorCenter) < 3.0) {
                         promptVisible = true;
-                        if (!d.open) {
-                            promptEl.innerText = "[E / Clic] Apri cassetto";
-                        } else if (d.hasLoot && !d.lootTaken) {
-                            promptEl.innerText = "[E / Clic] Prendi Grimaldello 🔑";
-                        } else {
-                            promptEl.innerText = "[E / Clic] Chiudi cassetto";
+                        promptEl.innerText = room.locked
+                            ? `[E / Clic] Apri Lucchetto Porta ${String(room.index + 1).padStart(4, '0')} (Serve 1 Grimaldello)`
+                            : `[E / Clic] Apri Porta ${String(room.index + 1).padStart(4, '0')}`;
+                    }
+
+                    for (const d of room.drawers) {
+                        d.group.position.z += (d.targetZ - d.group.position.z) * 10 * dt;
+
+                        if (playerPos.distanceTo(d.worldPos) < 2.8) {
+                            promptVisible = true;
+                            if (!d.open) {
+                                promptEl.innerText = "[E / Clic] Apri cassetto";
+                            } else if (d.lootType && !d.lootTaken) {
+                                promptEl.innerText = d.lootType === 'lockpick'
+                                    ? "[E / Clic] Prendi Grimaldello 🔑"
+                                    : "[E / Clic] Prendi Batteria 🔋";
+                            } else {
+                                promptEl.innerText = "[E / Clic] Chiudi cassetto";
+                            }
+                        }
+                    }
+
+                    for (const c of room.closets) {
+                        if (playerPos.distanceTo(c.worldPos) < 2.8) {
+                            promptVisible = true;
+                            promptEl.innerText = "[E / Clic] Nasconditi nell'armadio";
                         }
                     }
                 }
             }
 
             promptEl.style.display = promptVisible ? "block" : "none";
+
+            // 4. Actualizar IA del monstruo y rango de producción
+            actualizarIAMonstruo(dt);
             gestionarRangoProduccion();
         }
 
@@ -1799,9 +2326,11 @@ PAGINA_WEB = """<!DOCTYPE html>
             if (!doorsActive) return;
 
             if (e.code === "KeyF") {
-                flashlightOn = !flashlightOn;
-                flashlight.visible = flashlightOn;
-                actualizarHUD();
+                if (battery > 0) {
+                    flashlightOn = !flashlightOn;
+                    flashlight.visible = flashlightOn;
+                    actualizarHUD();
+                }
             }
             if (e.code === "KeyE") {
                 interactuar();
@@ -1864,9 +2393,11 @@ PAGINA_WEB = """<!DOCTYPE html>
 
         document.getElementById("btnFlash").addEventListener("touchstart", (e) => {
             e.preventDefault();
-            flashlightOn = !flashlightOn;
-            flashlight.visible = flashlightOn;
-            actualizarHUD();
+            if (battery > 0) {
+                flashlightOn = !flashlightOn;
+                flashlight.visible = flashlightOn;
+                actualizarHUD();
+            }
         });
         document.getElementById("btnInteract").addEventListener("touchstart", (e) => {
             e.preventDefault();
