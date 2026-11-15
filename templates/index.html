@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cinema Privato // Cinema & Arcade Vault ({{ version }})</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+
+    <!-- ETIQUETA FIJA DE VERSIÓN -->
+    <div class="version-badge">{{ version }}</div>
+
+    <!-- PANTALLA DE CARGA ORIGINAL -->
+    <div id="loaderOverlay">
+        <div class="door-frame">
+            <div class="door-graphics"></div>
+            <div class="loader-title">ACCESSO CASSETTA DI SICUREZZA</div>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div id="statusLabel" class="status-text">Avvio protocollo porte... (0%)</div>
+        </div>
+    </div>
+
+    <!-- LOGIN ORIGINAL DE SIEMPRE -->
+    <div id="loginScreen">
+        <div class="movie-backdrop"></div>
+        <div class="login-card" id="loginCard">
+            <h2>ACCESSO PRIVATO</h2>
+            <p>Inserisci la chiave per accedere al cinema personale</p>
+            
+            <div class="input-group">
+                <input type="password" id="passInput" placeholder="••••••••" autocomplete="off" oninput="playAudio('type')">
+            </div>
+
+            <button class="btn-submit" onclick="validarAcceso('{{ clave }}')">ENTRA NEL CINEMA</button>
+            <div id="errorLabel" class="error-label"></div>
+        </div>
+    </div>
+
+    <!-- CATÁLOGO DINÁMICO DE PELÍCULAS Y JUEGO -->
+    <div id="catalogSection">
+        <div class="netflix-wall-bg"></div>
+
+        <div class="catalog-content">
+            <div class="elaborate-header">
+                <div class="meta-tagline">
+                    <span></span> SERVER PRIVATO ESCLUSIVO
+                </div>
+                <h1 class="cinema-title">CINEMA & <em>ARCADE</em></h1>
+                <div class="title-divider"></div>
+                <p class="sub-description">Catalogo selezionato • Streaming Ultra HD & Giochi Web</p>
+            </div>
+
+            <div class="catalog-grid">
+                {% for peli_id, peli in peliculas.items() %}
+                <div class="movie-card" onclick="playAudio('open'); reproducir('{{ peli_id }}')">
+                    <img src="{{ peli.portada }}" alt="{{ peli.titulo }}">
+                    <div class="info">
+                        <h3>{{ peli.titulo }}</h3>
+                        <div class="badges">
+                            {% for badge in peli.badges %}
+                            <span class="badge-pill">{{ badge }}</span>
+                            {% endfor %}
+                            <span>{{ peli.genero }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Tarjeta del Juego DOORS 3D -->
+                <div class="movie-card game-card" onclick="playAudio('open'); abrirJuego()">
+                    <div class="game-cover-box">
+                        <span class="game-cover-icon">🚪</span>
+                        <span class="game-cover-title">DOORS 3D</span>
+                    </div>
+                    <div class="info">
+                        <h3>DOORS 3D: L'HOTEL</h3>
+                        <div class="badges">
+                            <span class="badge-pill badge-cyan">1ª PERSONA</span>
+                            <span class="badge-pill">PC & MOBILE</span>
+                            <span>Horror 3D</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal del Reproductor de Video -->
+    <div id="videoModal" class="modal">
+        <div class="modal-box">
+            <div class="subtitle-controls">
+                <label>
+                    <input type="checkbox" id="toggleAutoSub" checked onchange="toggleSubtitles(this.checked)">
+                    Sottotitoli (Solo Voce)
+                </label>
+            </div>
+
+            <span class="modal-close" onclick="cerrarVideo()">&times;</span>
+
+            <video id="player" controls playsinline crossorigin="anonymous"></video>
+        </div>
+    </div>
+
+    <!-- Modal Juego Doors 3D -->
+    <div id="gameModal" class="modal">
+        <div class="modal-box" id="gameModalBox">
+            <button id="btnFullscreen" onclick="toggleFullscreen()">[F11] SCHERMO INTERO</button>
+            <span class="modal-close" onclick="cerrarJuego()">&times;</span>
+
+            <div id="doors3DContainer">
+                <div id="doorsHUD">
+                    <div class="hud-pill" id="hudRoom">STANZA: LOBBY (0000)</div>
+                    <div class="hud-pill" id="hudStatus" style="color: #00f0ff;">Ascensore in salita...</div>
+                </div>
+
+                <!-- BARRA INFERIOR DE INVENTARIO (SIN PILAS) -->
+                <div id="bottomInventoryBar">
+                    <div class="inv-slot active" id="slotFlashlight">
+                        <span class="slot-key">[F]</span>
+                        <span class="slot-icon">🔦</span>
+                        <span class="slot-count" id="slotBatText">100%</span>
+                    </div>
+                    <div class="inv-slot" id="slotLockpick">
+                        <span class="slot-key">[E]</span>
+                        <span class="slot-icon">🔑</span>
+                        <span class="slot-count" id="slotKeyCount">x0</span>
+                    </div>
+                </div>
+
+                <div id="crosshair"></div>
+                <div id="promptText">Premi [E] o Clic per interagire</div>
+
+                <div id="startOverlay3D" onclick="iniciarControl3D()">
+                    <h2>DOORS 3D - L'HOTEL</h2>
+                    <p>
+                        PC: [WASD] Muovi • [Mouse] Guarda • [E / Clic] Apri porte, cassetti e armadi • [F] Torcia • [F11] Schermo intero<br>
+                        ATTENZIONE: Se i lampadari sfarfallano, nasconditi subito in un ARMADIO!
+                    </p>
+                    <div class="start-btn-3d">CLICCA PER ENTRARE NELL'ASCENSORE</div>
+                </div>
+
+                <div id="mobileControls">
+                    <div class="touch-dpad">
+                        <button class="touch-btn" id="btnUp">▲</button>
+                        <div class="touch-row">
+                            <button class="touch-btn" id="btnLeft">◀</button>
+                            <button class="touch-btn" id="btnDown">▼</button>
+                            <button class="touch-btn" id="btnRight">▶</button>
+                        </div>
+                    </div>
+                    <div class="touch-actions">
+                        <button class="touch-btn" id="btnFlash">🔦</button>
+                        <button class="touch-btn" id="btnInteract">✋</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Módulos JavaScript separados -->
+    <script src="{{ url_for('static', filename='audio_3d.js') }}"></script>
+    <script src="{{ url_for('static', filename='cine.js') }}"></script>
+    <script src="{{ url_for('static', filename='escenario_3d.js') }}"></script>
+    <script src="{{ url_for('static', filename='juego_3d.js') }}"></script>
+</body>
+</html>
